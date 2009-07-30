@@ -84,15 +84,15 @@ module ApplicationHelper
     html_options[:onclick] = "promptToRemote('#{text}', '#{param}', '#{url_for(url)}'); return false;"
     link_to name, {}, html_options
   end
-  
+
   def format_activity_title(text)
     h(truncate_single_line(text, :length => 100))
   end
-  
+
   def format_activity_day(date)
     date == Date.today ? l(:label_today).titleize : format_date(date)
   end
-  
+
   def format_activity_description(text)
     h(truncate(text.to_s, :length => 120).gsub(%r{[\r\n]*<(pre|code)>.*$}m, '...')).gsub(/[\r\n]+/, "<br />")
   end
@@ -118,7 +118,7 @@ module ApplicationHelper
     end
     content
   end
-  
+
   # Renders flash messages
   def render_flash_messages
     s = ''
@@ -127,7 +127,7 @@ module ApplicationHelper
     end
     s
   end
-  
+
   # Renders the project quick-jump box
   def render_project_jump_box
     # Retrieve them now to avoid a COUNT query
@@ -143,7 +143,7 @@ module ApplicationHelper
       s
     end
   end
-  
+
   def project_tree_options_for_select(projects, options = {})
     s = ''
     project_tree(projects) do |project, level|
@@ -154,19 +154,19 @@ module ApplicationHelper
     end
     s
   end
-  
+
   # Yields the given block for each project with its level in the tree
   def project_tree(projects, &block)
     ancestors = []
     projects.sort_by(&:lft).each do |project|
-      while (ancestors.any? && !project.is_descendant_of?(ancestors.last)) 
+      while (ancestors.any? && !project.is_descendant_of?(ancestors.last))
         ancestors.pop
       end
       yield project, ancestors.size
       ancestors << project
     end
   end
-  
+
   def project_nested_ul(projects, &block)
     s = ''
     if projects.any?
@@ -177,7 +177,7 @@ module ApplicationHelper
         else
           ancestors.pop
           s << "</li>"
-          while (ancestors.any? && !project.is_descendant_of?(ancestors.last)) 
+          while (ancestors.any? && !project.is_descendant_of?(ancestors.last))
             ancestors.pop
             s << "</ul></li>\n"
           end
@@ -204,7 +204,7 @@ module ApplicationHelper
     author_tag = (author.is_a?(User) && !author.anonymous?) ? link_to(h(author), :controller => 'account', :action => 'show', :id => author) : h(author || 'Anonymous')
     l(options[:label] || :label_added_time_by, :author => author_tag, :age => time_tag(created))
   end
-  
+
   def time_tag(time)
     text = distance_of_time_in_words(Time.now, time)
     if @project
@@ -237,7 +237,7 @@ module ApplicationHelper
     html << (pagination_links_each(paginator, options) do |n|
       link_to_remote_content_update(n.to_s, url_param.merge(page_param => n))
     end || '')
-    
+
     if paginator.current.next
       html << ' ' + link_to_remote_content_update((l(:label_next) + ' &#187;'), url_param.merge(page_param => paginator.current.next))
     end
@@ -251,7 +251,7 @@ module ApplicationHelper
 
     html
   end
-  
+
   def per_page_links(selected=nil)
     url_param = params.dup
     url_param.clear if url_param.has_key?(:set_filter)
@@ -264,7 +264,7 @@ module ApplicationHelper
     end
     links.size > 1 ? l(:label_display_per_page, links.join(', ')) : nil
   end
-  
+
   def reorder_links(name, url)
     link_to(image_tag('2uparrow.png',   :alt => l(:label_sort_highest)), url.merge({"#{name}[move_to]" => 'highest'}), :method => :post, :title => l(:label_sort_highest)) +
     link_to(image_tag('1uparrow.png',   :alt => l(:label_sort_higher)),  url.merge({"#{name}[move_to]" => 'higher'}),  :method => :post, :title => l(:label_sort_higher)) +
@@ -276,13 +276,13 @@ module ApplicationHelper
     elements = args.flatten
     elements.any? ? content_tag('p', args.join(' &#187; ') + ' &#187; ', :class => 'breadcrumb') : nil
   end
-  
+
   def other_formats_links(&block)
     concat('<p class="other-formats">' + l(:label_export_to))
     yield Redmine::Views::OtherFormatsBuilder.new(self)
     concat('</p>')
   end
-  
+
   def page_header_title
     if @project.nil? || @project.new_record?
       h(Setting.app_title)
@@ -439,9 +439,11 @@ module ApplicationHelper
     #     source:some/file#L120 -> Link to line 120 of the file
     #     source:some/file@52#L120 -> Link to line 120 of the file's revision 52
     #     export:some/file -> Force the download of the file
+    #  Wireframe:
+    #    wireframe:some/image@52 -> Display revision 52 of /some/image in the project's repository
     #  Forum messages:
     #     message#1218 -> Link to message with id 1218
-    text = text.gsub(%r{([\s\(,\-\>]|^)(!)?(attachment|document|version|commit|source|export|message)?((#|r)(\d+)|(:)([^"\s<>][^\s<>]*?|"[^"]+?"))(?=(?=[[:punct:]]\W)|,|\s|<|$)}) do |m|
+    text = text.gsub(%r{([\s\(,\-\>]|^)(!)?(attachment|document|version|commit|source|export|message|wireframe)?((#|r)(\d+)|(:)([^"\s<>][^\s<>]*?|"[^"]+?"))(?=(?=[[:punct:]]\W)|,|\s|<|$)}) do |m|
       leading, esc, prefix, sep, oid = $1, $2, $3, $5 || $7, $6 || $8
       link = nil
       if esc.nil?
@@ -512,6 +514,15 @@ module ApplicationHelper
                                                       :anchor => anchor,
                                                       :format => (prefix == 'export' ? 'raw' : nil)},
                                                      :class => (prefix == 'export' ? 'source download' : 'source')
+            end
+          when 'wireframe'
+            if project && project.repository
+              text = text.gsub(/wireframe:(\S*.(bmp|gif|jpg|jpeg|png))@(\d*)/i) do |m|
+                file = $1
+                rev = $3
+                image_url = ("/projects/#{project.id}/repository/entry/#{file}?rev=#{rev}")
+                link = image_tag(image_url)
+              end
             end
           when 'attachment'
             if attachments && attachment = attachments.detect {|a| a.filename == name }
@@ -643,12 +654,13 @@ module ApplicationHelper
     extend helper
     return self
   end
-  
+
   def link_to_remote_content_update(text, url_params)
     link_to_remote(text,
       {:url => url_params, :method => :get, :update => 'content', :complete => 'window.scrollTo(0,0)'},
       {:href => url_for(:params => url_params)}
     )
   end
-  
+
 end
+
