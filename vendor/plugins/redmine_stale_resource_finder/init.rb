@@ -1,5 +1,6 @@
 require 'redmine'
 require_dependency File.join(File.dirname(__FILE__), 'lib/application_helper_patch')
+require_dependency File.join(File.dirname(__FILE__), 'lib/wiki_content_patch')
 
 RAILS_DEFAULT_LOGGER.info 'Starting Stale Resource Finder Plugin for Redmine'
 
