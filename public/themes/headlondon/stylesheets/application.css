@@ -7,7 +7,7 @@ h1, h2, h3, h4 {font-family:Arial;}
 
 html, body, #wrapper {height:100%;}
 body > #wrapper {height:auto;min-height:100%;}
-#wrapper {background:#F6F2EF url(/images/head-arc.png) no-repeat scroll right bottom;}
+#wrapper {background:#F6F2EF url(/themes/headlondon/images/head-arc.png) no-repeat scroll right bottom;}
 
 #header {background-color:#6dc3c1;height:108px;padding:4px 2.6% 0px 2.6%;}
 
@@ -15,7 +15,7 @@ body > #wrapper {height:auto;min-height:100%;}
 
 #header, #top-menu {margin:0px;}
 
-#top-menu{background:#75706d url(/images/top-menu-repeat.gif) repeat-x scroll left bottom;height:2.4em;padding-left:2.6%;padding-right:2.6%;}
+#top-menu{background:#75706d url(/themes/headlondon/images/top-menu-repeat.gif) repeat-x scroll left bottom;height:2.4em;padding-left:2.6%;padding-right:2.6%;}
 #top-menu #loggedas {font-family:georgia;line-height:1.8em;font-size:13px;}
 #top-menu li {line-height:2.3em;}
 #top-menu ul li a {font-family:Georgia;font-weight:normal;font-size:13px;}
