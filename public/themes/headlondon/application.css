@@ -1,0 +1,137 @@
+@import url(../../../stylesheets/application.css);
+
+/* \/ ANDREW ALTERATIONS \/ */
+body {background-color:transparent;font-family:Georgia,"Times New Roman",Times,serif;font-weight:normal;line-height:normal;}
+
+h1, h2, h3, h4 {font-family:Arial;}
+
+html, body, #wrapper {height:100%;}
+body > #wrapper {height:auto;min-height:100%;}
+#wrapper {background:#F6F2EF url(/images/head-arc.png) no-repeat scroll right bottom;}
+
+#header {background-color:#6dc3c1;height:108px;padding:4px 2.6% 0px 2.6%;}
+
+#header h1{color:#fff;font-family:georgia;font-size:2em;font-weight:normal;margin:15px 0px 10px;}
+
+#header, #top-menu {margin:0px;}
+
+#top-menu{background:#75706d url(/images/top-menu-repeat.gif) repeat-x scroll left bottom;height:2.4em;padding-left:2.6%;padding-right:2.6%;}
+#top-menu #loggedas {font-family:georgia;line-height:1.8em;font-size:13px;}
+#top-menu li {line-height:2.3em;}
+#top-menu ul li a {font-family:Georgia;font-weight:normal;font-size:13px;}
+
+#quick-search {background: url(/images/search.gif) no-repeat scroll 0px 0px;height:44px;margin-top:12px;width:424px;}
+#quick-search form {float:left;margin:9px 0px 8px 11px;}
+#quick-search form a {font-family:georgia;}
+#quick-search form input {width:165px;}
+#quick-search select {float:right;margin-bottom:8px;margin-left:0px;margin-right:12px;margin-top:9px;width:165px;}
+
+#main-menu {bottom:0px;left:2.6%;margin-right:-500px;position:absolute;}
+#main-menu li {line-height:30px;}
+#main-menu li a { background-color: #dedddc;color:#333;font-family:georgia;font-weight:normal;padding:4px 11px;font-size:13px;}
+#main-menu li a:hover { background: #dedddc; text-decoration: underline; }
+#main-menu li a.selected, #main-menu li a.selected:hover { background-color:#FFF; }
+
+#main {background:transparent url(/images/main-repeat.gif) repeat-y scroll right top;margin:0px;}
+
+#content {border-top:none;border-right:1px solid #ccc;border-bottom:1px solid #ccc;border-left:none;font-family:Arial;margin:0px;position:relative;width:87%;overflow:hidden;_overflow:static;}
+#sidebar {background-color:#f6f2ef;padding:0px 0px 10px;margin:0px;min-height:450px;width:10%;font-size:0.8em;}
+html > body #content {min-height:450px;}
+#main.nosidebar #content {border-right:1px solid #ccc;}
+#content h2, #content #Welcome {background-color:#EEF9FA;border:1px solid #DEEDEE;color:#362F2D;font-family:georgia;font-size:2em;font-weight:normal;line-height:1.85em;margin:0pt 0px 10px;padding-left:10px;}
+#content p.subtitle {color:#000;position:absolute;right:50px;top:34px;}
+#content .contextual {color:#000;position:absolute;right:50px;top:22px;}
+#content div .contextual {position:static;}
+.contextual .contextual {position:static;}
+.issue .contextual {position:static;}
+.status-1 .contextual {position:static;}
+.priority-2 .contextual {position:static;}
+.relations .contextual {position:static;}
+.watchers .contextual {position:static;}
+
+#content .wiki h2, #content div h2  {background-color:#FFF;border:none;color:#444444;font-size:16px;margin:0pt 0pt 10px;padding:2px 10px 1px 0px;}
+
+
+#sidebar h3 {color:#362f2d;font-family:Georgia,"Times New Roman",Times,serif;font-weight:normal;}
+#sidebar p label {color:#362f2d;font-family:Arial;}
+
+div#activity dt.me .time {border-bottom:none;}
+div#activity dt .time {color:#333;font-size:100%;}
+
+ul.projects div.root a.project {font-family:Georgia,"Times New Roman",Times,serif;}
+/* /\ ANDREW ALTERATIONS /\ */
+
+
+
+#footer {background-color:#f6f2ef;border:0px;color:#333;font-family:Georgia;height:23px;padding:5px 0px 0px 2.6%;margin:0px;text-align:left;}
+a, a:link, a:visited{color:#258ebd;}
+
+/* Headers */
+h2, h3, h4, .wiki h1, .wiki h2, .wiki h3 {border-bottom: 0px;}
+h1{font-size:16px;color:#333;}
+
+
+/* Menu */
+
+
+
+/* Tables */
+table.list tbody td, table.list tbody tr:hover td { border: solid 1px #d7d7d7; }
+table.list thead th {
+    border-width: 1px;
+    border-style: solid;
+    border-top-color: #d7d7d7;
+    border-right-color: #d7d7d7;
+    border-left-color: #d7d7d7;
+    border-bottom-color: #999999;
+}
+
+
+
+
+/* Issues grid styles by priorities (provided by Wynn Netherland) */
+table.list tr.issue a { color: #666; }
+
+tr.odd.priority-5, table.list tbody tr.odd.priority-5:hover { color: #900; font-weight: bold; }
+tr.odd.priority-5 { background: #ffc4c4; }
+tr.even.priority-5, table.list tbody tr.even.priority-5:hover { color: #900; font-weight: bold; }
+tr.even.priority-5 { background: #ffd4d4; }
+tr.priority-5 a, tr.priority-5:hover a { color: #900; }
+tr.odd.priority-5 td, tr.even.priority-5 td { border-color: #ffb4b4; }
+
+tr.odd.priority-4, table.list tbody tr.odd.priority-4:hover { color: #900; }
+tr.odd.priority-4 { background: #ffc4c4; }
+tr.even.priority-4, table.list tbody tr.even.priority-4:hover { color: #900; }
+tr.even.priority-4 { background: #ffd4d4; }
+tr.priority-4 a { color: #900; }
+tr.odd.priority-4 td, tr.even.priority-4 td { border-color: #ffb4b4; }
+
+tr.odd.priority-3, table.list tbody tr.odd.priority-3:hover { color: #900; }
+tr.odd.priority-3 { background: #fee; }
+tr.even.priority-3, table.list tbody tr.even.priority-3:hover { color: #900; }
+tr.even.priority-3 { background: #fff2f2; }
+tr.priority-3 a { color: #900; }
+tr.odd.priority-3 td, tr.even.priority-3 td { border-color: #fcc; }
+
+tr.odd.priority-1, table.list tbody tr.odd.priority-1:hover { color: #559; }
+tr.odd.priority-1 { background: #eaf7ff; }
+tr.even.priority-1, table.list tbody tr.even.priority-1:hover { color: #559; }
+tr.even.priority-1 { background: #f2faff; }
+tr.priority-1 a { color: #559; }
+tr.odd.priority-1 td, tr.even.priority-1 td { border-color: #add7f3; }
+
+/* Buttons */
+input[type="button"], input[type="submit"], input[type="reset"] { background-color: #f2f2f2; color: #222222; border: 1px outset #cccccc; }
+input[type="button"]:hover, input[type="submit"]:hover, input[type="reset"]:hover { background-color: #ccccbb; }
+
+/* Fields */
+input[type="text"], textarea, select { padding: 2px; border: 1px solid #d7d7d7; }
+input[type="text"] { padding: 3px; }
+input[type="text"]:focus, textarea:focus, select:focus { border: 1px solid #888866; }
+option { border-bottom: 1px dotted #d7d7d7; }
+
+/* Misc */
+.box { background-color: #fcfcfc; }
+.nodata, .warning{background-color:#eee;color:#555;border:none;}
+#login-form table{background-color:#eee;color:#555;border:none;}
+
