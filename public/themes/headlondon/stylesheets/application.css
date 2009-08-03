@@ -20,7 +20,7 @@ body > #wrapper {height:auto;min-height:100%;}
 #top-menu li {line-height:2.3em;}
 #top-menu ul li a {font-family:Georgia;font-weight:normal;font-size:13px;}
 
-#quick-search {background: url(/images/search.gif) no-repeat scroll 0px 0px;height:44px;margin-top:12px;width:424px;}
+#quick-search {background: url(/themes/headlondon/images/search.gif) no-repeat scroll 0px 0px;height:44px;margin-top:12px;width:424px;}
 #quick-search form {float:left;margin:9px 0px 8px 11px;}
 #quick-search form a {font-family:georgia;}
 #quick-search form input {width:165px;}
@@ -32,7 +32,7 @@ body > #wrapper {height:auto;min-height:100%;}
 #main-menu li a:hover { background: #dedddc; text-decoration: underline; }
 #main-menu li a.selected, #main-menu li a.selected:hover { background-color:#FFF; }
 
-#main {background:transparent url(/images/main-repeat.gif) repeat-y scroll right top;margin:0px;}
+#main {background:transparent url(/themes/headlondon/images/main-repeat.gif) repeat-y scroll right top;margin:0px;}
 
 #content {border-top:none;border-right:1px solid #ccc;border-bottom:1px solid #ccc;border-left:none;font-family:Arial;margin:0px;position:relative;width:87%;overflow:hidden;_overflow:static;}
 #sidebar {background-color:#f6f2ef;padding:0px 0px 10px;margin:0px;min-height:450px;width:10%;font-size:1.0em;}
