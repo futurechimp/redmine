@@ -487,6 +487,7 @@ module ApplicationHelper
         elsif sep == ':'
           # removes the double quotes if any
           name = oid.gsub(%r{^"(.*)"$}, "\\1")
+          foo = ""
           case prefix
           when 'document'
             if project && document = project.documents.find_by_title(name)
@@ -517,12 +518,10 @@ module ApplicationHelper
             end
           when 'wireframe'
             if project && project.repository
-              text = text.gsub(/wireframe:(\S*.(bmp|gif|jpg|jpeg|png))@(\d*)/i) do |m|
-                file = $1
-                rev = $3
-                image_url = ("/projects/#{project.id}/repository/entry/#{file}?rev=#{rev}")
-                link = image_tag(image_url)
-              end
+              name =~ %r{(\S*.(bmp|gif|jpg|jpeg|png))@(\d*)}i
+              file, rev = $1, $3
+              image_url = ("/projects/#{project.id}/repository/entry/#{file}?rev=#{rev}")
+              link = image_tag(image_url)
             end
           when 'attachment'
             if attachments && attachment = attachments.detect {|a| a.filename == name }
