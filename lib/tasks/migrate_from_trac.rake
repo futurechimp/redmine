@@ -263,7 +263,7 @@ namespace :redmine do
           elsif TracPermission.find_by_username_and_action(username, 'developer')
             role = ROLE_MAPPING['developer']
           end
-          Member.create(:user => u, :project => @target_project, :role => role)
+          Member.create(:user => u, :project => @target_project, :roles => [role])
           u.reload
         end
         u
@@ -754,10 +754,10 @@ namespace :redmine do
     prompt('Trac database encoding', :default => 'UTF-8') {|encoding| TracMigrate.encoding encoding}
     prompt('Target project identifier') {|identifier| TracMigrate.target_project_identifier identifier}
     puts
-    
+
     # Turn off email notifications
     Setting.notified_events = []
-    
+
     TracMigrate.migrate
   end
 end
