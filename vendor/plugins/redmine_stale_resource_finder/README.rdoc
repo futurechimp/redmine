@@ -1,3 +1,0 @@
-= stale_resource_finder
-
-Description goes here
