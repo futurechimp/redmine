@@ -10,7 +10,7 @@ Redmine::Plugin.register :redmine_stale_resource_finder do
   description "Checks a project's wiki to see whether there are newer versions of any images embedded in the pages within the project's source code repo."
   version '0.0.1'
 
-  permission :stale_resource_finder, {:stale_resource_finder => [:index]}, :public => true
-  menu :project_menu, :stale_resource_finder, { :controller => 'stale_resource_finder', :action => 'index' }, :caption => 'Stale resource finder', :after => :activity, :param => :project_id
+  #permission :stale_resource_finder, {:stale_resource_finder => [:index]}, :public => true
+  #menu :project_menu, :stale_resource_finder, { :controller => 'stale_resource_finder', :action => 'index' }, :caption => 'Stale resource finder', :after => :activity, :param => :project_id
 end
 
