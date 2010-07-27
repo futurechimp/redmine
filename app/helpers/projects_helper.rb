@@ -18,7 +18,7 @@
 module ProjectsHelper
   def link_to_version(version, options = {})
     return '' unless version && version.is_a?(Version)
-    link_to h(version.name), { :controller => 'versions', :action => 'show', :id => version }, options
+    link_to_if version.visible?, format_version_name(version), { :controller => 'versions', :action => 'show', :id => version }, options
   end
   
   def project_settings_tabs
@@ -29,14 +29,24 @@ module ProjectsHelper
             {:name => 'categories', :action => :manage_categories, :partial => 'projects/settings/issue_categories', :label => :label_issue_category_plural},
             {:name => 'wiki', :action => :manage_wiki, :partial => 'projects/settings/wiki', :label => :label_wiki},
             {:name => 'repository', :action => :manage_repository, :partial => 'projects/settings/repository', :label => :label_repository},
-            {:name => 'boards', :action => :manage_boards, :partial => 'projects/settings/boards', :label => :label_board_plural}
+            {:name => 'boards', :action => :manage_boards, :partial => 'projects/settings/boards', :label => :label_board_plural},
+            {:name => 'activities', :action => :manage_project_activities, :partial => 'projects/settings/activities', :label => :enumeration_activities}
             ]
     tabs.select {|tab| User.current.allowed_to?(tab[:action], @project)}     
   end
   
   def parent_project_select_tag(project)
-    options = '<option></option>' + project_tree_options_for_select(project.possible_parents, :selected => project.parent)
-    content_tag('select', options, :name => 'project[parent_id]')
+    selected = project.parent
+    # retrieve the requested parent project
+    parent_id = (params[:project] && params[:project][:parent_id]) || params[:parent_id]
+    if parent_id
+      selected = (parent_id.blank? ? nil : Project.find(parent_id))
+    end
+    
+    options = ''
+    options << "<option value=''></option>" if project.allowed_parents.include?(nil)
+    options << project_tree_options_for_select(project.allowed_parents.compact, :selected => selected)
+    content_tag('select', options, :name => 'project[parent_id]', :id => 'project_parent_id')
   end
   
   # Renders a tree of projects as a nested set of unordered lists
@@ -46,7 +56,10 @@ module ProjectsHelper
     s = ''
     if projects.any?
       ancestors = []
+      original_project = @project
       projects.each do |project|
+        # set the project environment to please macros.
+        @project = project
         if (ancestors.empty? || project.is_descendant_of?(ancestors.last))
           s << "<ul class='projects #{ ancestors.empty? ? 'root' : nil}'>\n"
         else
@@ -65,7 +78,31 @@ module ProjectsHelper
         ancestors << project
       end
       s << ("</li></ul>\n" * ancestors.size)
+      @project = original_project
     end
     s
+  end
+
+  # Returns a set of options for a select field, grouped by project.
+  def version_options_for_select(versions, selected=nil)
+    grouped = Hash.new {|h,k| h[k] = []}
+    versions.each do |version|
+      grouped[version.project.name] << [version.name, version.id]
+    end
+    # Add in the selected
+    if selected && !versions.include?(selected)
+      grouped[selected.project.name] << [selected.name, selected.id]
+    end
+    
+    if grouped.keys.size > 1
+      grouped_options_for_select(grouped, selected && selected.id)
+    else
+      options_for_select((grouped.values.first || []), selected && selected.id)
+    end
+  end
+
+  def format_version_sharing(sharing)
+    sharing = 'none' unless Version::VERSION_SHARINGS.include?(sharing)
+    l("label_version_sharing_#{sharing}")
   end
 end

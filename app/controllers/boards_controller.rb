@@ -16,7 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 class BoardsController < ApplicationController
-  before_filter :find_project, :authorize
+  default_search_scope :messages
+  before_filter :find_project, :find_board_if_available, :authorize
 
   helper :messages
   include MessagesHelper
@@ -67,24 +68,33 @@ class BoardsController < ApplicationController
     @board.project = @project
     if request.post? && @board.save
       flash[:notice] = l(:notice_successful_create)
-      redirect_to :controller => 'projects', :action => 'settings', :id => @project, :tab => 'boards'
+      redirect_to_settings_in_projects
     end
   end
 
   def edit
     if request.post? && @board.update_attributes(params[:board])
-      redirect_to :controller => 'projects', :action => 'settings', :id => @project, :tab => 'boards'
+      redirect_to_settings_in_projects
     end
   end
 
   def destroy
     @board.destroy
-    redirect_to :controller => 'projects', :action => 'settings', :id => @project, :tab => 'boards'
+    redirect_to_settings_in_projects
   end
   
 private
+  def redirect_to_settings_in_projects
+    redirect_to :controller => 'projects', :action => 'settings', :id => @project, :tab => 'boards'
+  end
+
   def find_project
     @project = Project.find(params[:project_id])
+  rescue ActiveRecord::RecordNotFound
+    render_404
+  end
+
+  def find_board_if_available
     @board = @project.boards.find(params[:id]) if params[:id]
   rescue ActiveRecord::RecordNotFound
     render_404

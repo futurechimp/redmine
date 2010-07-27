@@ -21,13 +21,10 @@ require 'repositories_controller'
 # Re-raise errors caught by the controller.
 class RepositoriesController; def rescue_action(e) raise e end; end
 
-class RepositoriesSubversionControllerTest < Test::Unit::TestCase
+class RepositoriesSubversionControllerTest < ActionController::TestCase
   fixtures :projects, :users, :roles, :members, :member_roles, :enabled_modules,
            :repositories, :issues, :issue_statuses, :changesets, :changes,
            :issue_categories, :enumerations, :custom_fields, :custom_values, :trackers
-
-  # No '..' in the repository path for svn
-  REPOSITORY_PATH = RAILS_ROOT.gsub(%r{config\/\.\.}, '') + '/tmp/test/subversion_repository'
 
   def setup
     @controller = RepositoriesController.new
@@ -37,7 +34,7 @@ class RepositoriesSubversionControllerTest < Test::Unit::TestCase
     User.current = nil
   end
 
-  if File.directory?(REPOSITORY_PATH)
+  if repository_configured?('subversion')
     def test_show
       get :show, :id => 1
       assert_response :success
@@ -47,20 +44,20 @@ class RepositoriesSubversionControllerTest < Test::Unit::TestCase
     end
     
     def test_browse_root
-      get :browse, :id => 1
+      get :show, :id => 1
       assert_response :success
-      assert_template 'browse'
+      assert_template 'show'
       assert_not_nil assigns(:entries)
       entry = assigns(:entries).detect {|e| e.name == 'subversion_test'}
       assert_equal 'dir', entry.kind
     end
     
     def test_browse_directory
-      get :browse, :id => 1, :path => ['subversion_test']
+      get :show, :id => 1, :path => ['subversion_test']
       assert_response :success
-      assert_template 'browse'
+      assert_template 'show'
       assert_not_nil assigns(:entries)
-      assert_equal ['folder', '.project', 'helloworld.c', 'textfile.txt'], assigns(:entries).collect(&:name)
+      assert_equal ['[folder_with_brackets]', 'folder', '.project', 'helloworld.c', 'textfile.txt'], assigns(:entries).collect(&:name)
       entry = assigns(:entries).detect {|e| e.name == 'helloworld.c'}
       assert_equal 'file', entry.kind
       assert_equal 'subversion_test/helloworld.c', entry.path
@@ -68,17 +65,22 @@ class RepositoriesSubversionControllerTest < Test::Unit::TestCase
     end
 
     def test_browse_at_given_revision
-      get :browse, :id => 1, :path => ['subversion_test'], :rev => 4
+      get :show, :id => 1, :path => ['subversion_test'], :rev => 4
       assert_response :success
-      assert_template 'browse'
+      assert_template 'show'
       assert_not_nil assigns(:entries)
       assert_equal ['folder', '.project', 'helloworld.c', 'helloworld.rb', 'textfile.txt'], assigns(:entries).collect(&:name)
     end
     
-    def test_changes
+    def test_file_changes
       get :changes, :id => 1, :path => ['subversion_test', 'folder', 'helloworld.rb' ]
       assert_response :success
       assert_template 'changes'
+      
+      changesets = assigns(:changesets)
+      assert_not_nil changesets
+      assert_equal %w(6 3 2), changesets.collect(&:revision)
+      
       # svn properties displayed with svn >= 1.5 only
       if Redmine::Scm::Adapters::SubversionAdapter.client_version_above?([1, 5, 0])
         assert_not_nil assigns(:properties)
@@ -88,6 +90,16 @@ class RepositoriesSubversionControllerTest < Test::Unit::TestCase
                                :child => { :tag => 'b', :content => 'svn:eol-style' },
                                :child => { :tag => 'span', :content => 'native' } }
       end
+    end
+
+    def test_directory_changes
+      get :changes, :id => 1, :path => ['subversion_test', 'folder' ]
+      assert_response :success
+      assert_template 'changes'
+      
+      changesets = assigns(:changesets)
+      assert_not_nil changesets
+      assert_equal %w(10 9 7 6 5 2), changesets.collect(&:revision)
     end
       
     def test_entry
@@ -131,7 +143,7 @@ class RepositoriesSubversionControllerTest < Test::Unit::TestCase
     def test_directory_entry
       get :entry, :id => 1, :path => ['subversion_test', 'folder']
       assert_response :success
-      assert_template 'browse'
+      assert_template 'show'
       assert_not_nil assigns(:entry)
       assert_equal 'folder', assigns(:entry).name
     end
@@ -176,10 +188,21 @@ class RepositoriesSubversionControllerTest < Test::Unit::TestCase
                             }
     end
     
-    def test_diff
+    def test_revision_diff
       get :diff, :id => 1, :rev => 3
       assert_response :success
       assert_template 'diff'
+    end
+
+    def test_directory_diff
+      get :diff, :id => 1, :rev => 6, :rev_to => 2, :path => ['subversion_test', 'folder']
+      assert_response :success
+      assert_template 'diff'
+      
+      diff = assigns(:diff)
+      assert_not_nil diff
+      # 2 files modified
+      assert_equal 2, Redmine::UnifiedDiff.new(diff).size
     end
     
     def test_annotate

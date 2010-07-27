@@ -21,7 +21,7 @@ require 'versions_controller'
 # Re-raise errors caught by the controller.
 class VersionsController; def rescue_action(e) raise e end; end
 
-class VersionsControllerTest < Test::Unit::TestCase
+class VersionsControllerTest < ActionController::TestCase
   fixtures :projects, :versions, :issues, :users, :roles, :members, :member_roles, :enabled_modules
   
   def setup
@@ -40,11 +40,42 @@ class VersionsControllerTest < Test::Unit::TestCase
     assert_tag :tag => 'h2', :content => /1.0/
   end
   
+  def test_new
+    @request.session[:user_id] = 2 # manager
+    assert_difference 'Version.count' do
+      post :new, :project_id => '1', :version => {:name => 'test_add_version'}
+    end
+    assert_redirected_to '/projects/ecookbook/settings/versions'
+    version = Version.find_by_name('test_add_version')
+    assert_not_nil version
+    assert_equal 1, version.project_id
+  end
+  
+  def test_new_from_issue_form
+    @request.session[:user_id] = 2 # manager
+    assert_difference 'Version.count' do
+      xhr :post, :new, :project_id => '1', :version => {:name => 'test_add_version_from_issue_form'}
+    end
+    assert_response :success
+    assert_select_rjs :replace, 'issue_fixed_version_id'
+    version = Version.find_by_name('test_add_version_from_issue_form')
+    assert_not_nil version
+    assert_equal 1, version.project_id
+  end
+  
   def test_get_edit
     @request.session[:user_id] = 2
     get :edit, :id => 2
     assert_response :success
     assert_template 'edit'
+  end
+  
+  def test_close_completed
+    Version.update_all("status = 'open'")
+    @request.session[:user_id] = 2
+    post :close_completed, :project_id => 'ecookbook'
+    assert_redirected_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => 'ecookbook'
+    assert_not_nil Version.find_by_status('closed')
   end
   
   def test_post_edit

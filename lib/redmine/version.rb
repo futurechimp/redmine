@@ -2,15 +2,15 @@ require 'rexml/document'
 
 module Redmine
   module VERSION #:nodoc:
-    MAJOR = 0
-    MINOR = 8
-    TINY  = 4
+    MAJOR = 1
+    MINOR = 0
+    TINY  = 0
     
     # Branch values:
     # * official release: nil
     # * stable branch:    stable
     # * trunk:            devel
-    BRANCH = 'devel'
+    BRANCH = 'stable'
 
     def self.revision
       revision = nil

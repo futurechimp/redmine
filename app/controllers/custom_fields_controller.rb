@@ -16,6 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 class CustomFieldsController < ApplicationController
+  layout 'admin'
+  
   before_filter :require_admin
 
   def index
@@ -30,7 +32,7 @@ class CustomFieldsController < ApplicationController
       end
     rescue
     end
-    redirect_to(:action => 'index') and return unless @custom_field.is_a?(CustomField)
+    (redirect_to(:action => 'index'); return) unless @custom_field.is_a?(CustomField)
     
     if request.post? and @custom_field.save
       flash[:notice] = l(:notice_successful_create)
@@ -54,7 +56,7 @@ class CustomFieldsController < ApplicationController
     @custom_field = CustomField.find(params[:id]).destroy
     redirect_to :action => 'index', :tab => @custom_field.class.name
   rescue
-    flash[:error] = "Unable to delete custom field"
+    flash[:error] = l(:error_can_not_delete_custom_field)
     redirect_to :action => 'index'
   end
 end

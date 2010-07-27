@@ -1,3 +1,5 @@
+# encoding: utf-8
+#
 # Redmine - project management software
 # Copyright (C) 2006-2009  Jean-Philippe Lang
 #
@@ -17,7 +19,7 @@
 
 require File.dirname(__FILE__) + '/../test_helper'
 
-class MailHandlerTest < Test::Unit::TestCase
+class MailHandlerTest < ActiveSupport::TestCase
   fixtures :users, :projects, 
                    :enabled_modules,
                    :roles,
@@ -42,6 +44,7 @@ class MailHandlerTest < Test::Unit::TestCase
   end
   
   def test_add_issue
+    ActionMailer::Base.deliveries.clear
     # This email contains: 'Project: onlinestore'
     issue = submit_email('ticket_on_given_project.eml')
     assert issue.is_a?(Issue)
@@ -52,9 +55,16 @@ class MailHandlerTest < Test::Unit::TestCase
     assert_equal Project.find(2), issue.project
     assert_equal IssueStatus.find_by_name('Resolved'), issue.status
     assert issue.description.include?('Lorem ipsum dolor sit amet, consectetuer adipiscing elit.')
+    assert_equal '2010-01-01', issue.start_date.to_s
+    assert_equal '2010-12-31', issue.due_date.to_s
+    assert_equal User.find_by_login('jsmith'), issue.assigned_to
     # keywords should be removed from the email body
     assert !issue.description.match(/^Project:/i)
     assert !issue.description.match(/^Status:/i)
+    # Email notification should be sent
+    mail = ActionMailer::Base.deliveries.last
+    assert_not_nil mail
+    assert mail.subject.include?('New ticket on a given project')
   end
 
   def test_add_issue_with_status
@@ -94,6 +104,21 @@ class MailHandlerTest < Test::Unit::TestCase
     assert_equal 'High', issue.priority.to_s
     assert issue.description.include?('Lorem ipsum dolor sit amet, consectetuer adipiscing elit.')
   end
+  
+  def test_add_issue_with_spaces_between_attribute_and_separator
+    issue = submit_email('ticket_with_spaces_between_attribute_and_separator.eml', :allow_override => 'tracker,category,priority')
+    assert issue.is_a?(Issue)
+    assert !issue.new_record?
+    issue.reload
+    assert_equal 'New ticket on a given project', issue.subject
+    assert_equal User.find_by_login('jsmith'), issue.author
+    assert_equal Project.find(2), issue.project
+    assert_equal 'Feature request', issue.tracker.to_s
+    assert_equal 'Stock management', issue.category.to_s
+    assert_equal 'Urgent', issue.priority.to_s
+    assert issue.description.include?('Lorem ipsum dolor sit amet, consectetuer adipiscing elit.')
+  end
+
   
   def test_add_issue_with_attachment_to_specific_project
     issue = submit_email('ticket_with_attachment.eml', :issue => {:project => 'onlinestore'})
@@ -144,6 +169,35 @@ class MailHandlerTest < Test::Unit::TestCase
       assert issue.author.anonymous?
     end
   end
+
+  def test_add_issue_by_anonymous_user_with_no_from_address
+    Role.anonymous.add_permission!(:add_issues)
+    assert_no_difference 'User.count' do
+      issue = submit_email('ticket_by_empty_user.eml', :issue => {:project => 'ecookbook'}, :unknown_user => 'accept')
+      assert issue.is_a?(Issue)
+      assert issue.author.anonymous?
+    end
+  end
+  
+  def test_add_issue_by_anonymous_user_on_private_project
+    Role.anonymous.add_permission!(:add_issues)
+    assert_no_difference 'User.count' do
+      assert_no_difference 'Issue.count' do
+        assert_equal false, submit_email('ticket_by_unknown_user.eml', :issue => {:project => 'onlinestore'}, :unknown_user => 'accept')
+      end
+    end
+  end
+  
+  def test_add_issue_by_anonymous_user_on_private_project_without_permission_check
+    assert_no_difference 'User.count' do
+      assert_difference 'Issue.count' do
+        issue = submit_email('ticket_by_unknown_user.eml', :issue => {:project => 'onlinestore'}, :no_permission_check => '1', :unknown_user => 'accept')
+        assert issue.is_a?(Issue)
+        assert issue.author.anonymous?
+        assert !issue.project.is_public?
+      end
+    end
+  end
   
   def test_add_issue_by_created_user
     Setting.default_language = 'en'
@@ -169,6 +223,21 @@ class MailHandlerTest < Test::Unit::TestCase
     Role.anonymous.add_permission!(:add_issues)
     assert_equal false, submit_email('ticket_without_from_header.eml')
   end
+  
+  def test_add_issue_with_japanese_keywords
+    tracker = Tracker.create!(:name => '開発')
+    Project.find(1).trackers << tracker
+    issue = submit_email('japanese_keywords_iso_2022_jp.eml', :issue => {:project => 'ecookbook'}, :allow_override => 'tracker')
+    assert_kind_of Issue, issue
+    assert_equal tracker, issue.tracker
+  end
+
+  def test_should_ignore_emails_from_emission_address
+    Role.anonymous.add_permission!(:add_issues)
+    assert_no_difference 'User.count' do
+      assert_equal false, submit_email('ticket_from_emission_address.eml', :issue => {:project => 'ecookbook'}, :unknown_user => 'create')
+    end
+  end
 
   def test_add_issue_should_send_email_notification
     ActionMailer::Base.deliveries.clear
@@ -186,7 +255,7 @@ class MailHandlerTest < Test::Unit::TestCase
     assert_match /This is reply/, journal.notes
   end
 
-  def test_add_issue_note_with_status_change
+  def test_add_issue_note_with_attribute_changes
     # This email contains: 'Status: Resolved'
     journal = submit_email('ticket_reply_with_status.eml')
     assert journal.is_a?(Journal)
@@ -195,6 +264,9 @@ class MailHandlerTest < Test::Unit::TestCase
     assert_equal Issue.find(2), journal.journalized
     assert_match /This is reply/, journal.notes
     assert_equal IssueStatus.find_by_name("Resolved"), issue.status
+    assert_equal '2010-01-01', issue.start_date.to_s
+    assert_equal '2010-12-31', issue.due_date.to_s
+    assert_equal User.find_by_login('jsmith'), issue.assigned_to
   end
 
   def test_add_issue_note_should_send_email_notification
@@ -232,10 +304,68 @@ class MailHandlerTest < Test::Unit::TestCase
     assert_equal 'This is a html-only email.', issue.description
   end
 
+  context "truncate emails based on the Setting" do
+    context "with no setting" do
+      setup do
+        Setting.mail_handler_body_delimiters = ''
+      end
+
+      should "add the entire email into the issue" do
+        issue = submit_email('ticket_on_given_project.eml')
+        assert_issue_created(issue)
+        assert issue.description.include?('---')
+        assert issue.description.include?('This paragraph is after the delimiter')
+      end
+    end
+
+    context "with a single string" do
+      setup do
+        Setting.mail_handler_body_delimiters = '---'
+      end
+
+      should "truncate the email at the delimiter for the issue" do
+        issue = submit_email('ticket_on_given_project.eml')
+        assert_issue_created(issue)
+        assert issue.description.include?('This paragraph is before delimiters')
+        assert issue.description.include?('--- This line starts with a delimiter')
+        assert !issue.description.match(/^---$/)
+        assert !issue.description.include?('This paragraph is after the delimiter')
+      end
+    end
+
+    context "with multiple strings" do
+      setup do
+        Setting.mail_handler_body_delimiters = "---\nBREAK"
+      end
+
+      should "truncate the email at the first delimiter found (BREAK)" do
+        issue = submit_email('ticket_on_given_project.eml')
+        assert_issue_created(issue)
+        assert issue.description.include?('This paragraph is before delimiters')
+        assert !issue.description.include?('BREAK')
+        assert !issue.description.include?('This paragraph is between delimiters')
+        assert !issue.description.match(/^---$/)
+        assert !issue.description.include?('This paragraph is after the delimiter')
+      end
+    end
+  end
+  
+  def test_email_with_long_subject_line
+    issue = submit_email('ticket_with_long_subject.eml')
+    assert issue.is_a?(Issue)
+    assert_equal issue.subject, 'New ticket on a given project with a very long subject line which exceeds 255 chars and should not be ignored but chopped off. And if the subject line is still not long enough, we just add more text. And more text. Wow, this is really annoying. Especially, if you have nothing to say...'[0,255]
+  end
+
   private
   
   def submit_email(filename, options={})
     raw = IO.read(File.join(FIXTURES_PATH, filename))
     MailHandler.receive(raw, options)
+  end
+
+  def assert_issue_created(issue)
+    assert issue.is_a?(Issue)
+    assert !issue.new_record?
+    issue.reload
   end
 end

@@ -21,7 +21,7 @@ require 'boards_controller'
 # Re-raise errors caught by the controller.
 class BoardsController; def rescue_action(e) raise e end; end
 
-class BoardsControllerTest < Test::Unit::TestCase
+class BoardsControllerTest < ActionController::TestCase
   fixtures :projects, :users, :members, :member_roles, :roles, :boards, :messages, :enabled_modules
   
   def setup
@@ -29,13 +29,6 @@ class BoardsControllerTest < Test::Unit::TestCase
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     User.current = nil
-  end
-  
-  def test_index_routing
-    assert_routing(
-      {:method => :get, :path => '/projects/world_domination/boards'},
-      :controller => 'boards', :action => 'index', :project_id => 'world_domination'
-    )
   end
   
   def test_index
@@ -60,34 +53,12 @@ class BoardsControllerTest < Test::Unit::TestCase
     assert_not_nil assigns(:topics)
   end
   
-  def test_new_routing
-    assert_routing(
-      {:method => :get, :path => '/projects/world_domination/boards/new'},
-      :controller => 'boards', :action => 'new', :project_id => 'world_domination'
-    )
-    assert_recognizes(
-      {:controller => 'boards', :action => 'new', :project_id => 'world_domination'},
-      {:method => :post, :path => '/projects/world_domination/boards'}
-    )
-  end
-  
   def test_post_new
     @request.session[:user_id] = 2
     assert_difference 'Board.count' do
       post :new, :project_id => 1, :board => { :name => 'Testing', :description => 'Testing board creation'}
     end
     assert_redirected_to '/projects/ecookbook/settings/boards'
-  end
-  
-  def test_show_routing
-    assert_routing(
-      {:method => :get, :path => '/projects/world_domination/boards/44'},
-      :controller => 'boards', :action => 'show', :id => '44', :project_id => 'world_domination'
-    )
-    assert_routing(
-      {:method => :get, :path => '/projects/world_domination/boards/44.atom'},
-      :controller => 'boards', :action => 'show', :id => '44', :project_id => 'world_domination', :format => 'atom'
-    )
   end
   
   def test_show
@@ -108,17 +79,6 @@ class BoardsControllerTest < Test::Unit::TestCase
     assert_not_nil assigns(:messages)
   end
   
-  def test_edit_routing
-    assert_routing(
-      {:method => :get, :path => '/projects/world_domination/boards/44/edit'},
-      :controller => 'boards', :action => 'edit', :id => '44', :project_id => 'world_domination'
-    )
-    assert_recognizes(#TODO: use PUT method to board_path, modify form accordingly
-      {:controller => 'boards', :action => 'edit', :id => '44', :project_id => 'world_domination'},
-      {:method => :post, :path => '/projects/world_domination/boards/44/edit'}
-    )
-  end
-  
   def test_post_edit
     @request.session[:user_id] = 2
     assert_no_difference 'Board.count' do
@@ -126,13 +86,6 @@ class BoardsControllerTest < Test::Unit::TestCase
     end
     assert_redirected_to '/projects/ecookbook/settings/boards'
     assert_equal 'Testing', Board.find(2).name
-  end
-  
-  def test_destroy_routing
-    assert_routing(#TODO: use DELETE method to board_path, modify form accoringly
-      {:method => :post, :path => '/projects/world_domination/boards/44/destroy'},
-      :controller => 'boards', :action => 'destroy', :id => '44', :project_id => 'world_domination'
-    )
   end
   
   def test_post_destroy

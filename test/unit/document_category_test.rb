@@ -17,15 +17,15 @@
 
 require File.dirname(__FILE__) + '/../test_helper'
 
-class DocumentCategoryTest < Test::Unit::TestCase
-  fixtures :enumerations, :documents
+class DocumentCategoryTest < ActiveSupport::TestCase
+  fixtures :enumerations, :documents, :issues
 
   def test_should_be_an_enumeration
     assert DocumentCategory.ancestors.include?(Enumeration)
   end
   
   def test_objects_count
-    assert_equal 1, DocumentCategory.find_by_name("Uncategorized").objects_count
+    assert_equal 2, DocumentCategory.find_by_name("Uncategorized").objects_count
     assert_equal 0, DocumentCategory.find_by_name("User documentation").objects_count
   end
 

@@ -27,7 +27,8 @@ class ApplicationHelperTest < HelperTestCase
                       :trackers, :issue_statuses, :issues, :versions, :documents,
                       :wikis, :wiki_pages, :wiki_contents,
                       :boards, :messages,
-                      :attachments
+                      :attachments,
+                      :enumerations
 
   def setup
     super
@@ -59,12 +60,14 @@ class ApplicationHelperTest < HelperTestCase
       'sftp://foo.bar' => '<a class="external" href="sftp://foo.bar">sftp://foo.bar</a>',
       # two exclamation marks
       'http://example.net/path!602815048C7B5C20!302.html' => '<a class="external" href="http://example.net/path!602815048C7B5C20!302.html">http://example.net/path!602815048C7B5C20!302.html</a>',
+      # escaping
+      'http://foo"bar' => '<a class="external" href="http://foo&quot;bar">http://foo"bar</a>',
     }
     to_test.each { |text, result| assert_equal "<p>#{result}</p>", textilizable(text) }
   end
   
   def test_auto_mailto
-    assert_equal '<p><a href="mailto:test@foo.bar" class="email">test@foo.bar</a></p>', 
+    assert_equal '<p><a class="email" href="mailto:test@foo.bar">test@foo.bar</a></p>', 
       textilizable('test@foo.bar')
   end
   
@@ -81,6 +84,19 @@ class ApplicationHelperTest < HelperTestCase
     to_test.each { |text, result| assert_equal "<p>#{result}</p>", textilizable(text) }
   end
   
+  def test_inline_images_inside_tags
+    raw = <<-RAW
+h1. !foo.png! Heading
+
+Centered image:
+
+p=. !bar.gif!
+RAW
+
+    assert textilizable(raw).include?('<img src="foo.png" alt="" />')
+    assert textilizable(raw).include?('<img src="bar.gif" alt="" />')
+  end
+  
   def test_acronyms
     to_test = {
       'this is an acronym: GPL(General Public License)' => 'this is an acronym: <acronym title="General Public License">GPL</acronym>',
@@ -95,7 +111,9 @@ class ApplicationHelperTest < HelperTestCase
       'Inline image: !logo.gif!' => 'Inline image: <img src="/attachments/download/3" title="This is a logo" alt="This is a logo" />',
       'Inline image: !logo.GIF!' => 'Inline image: <img src="/attachments/download/3" title="This is a logo" alt="This is a logo" />',
       'No match: !ogo.gif!' => 'No match: <img src="ogo.gif" alt="" />',
-      'No match: !ogo.GIF!' => 'No match: <img src="ogo.GIF" alt="" />'
+      'No match: !ogo.GIF!' => 'No match: <img src="ogo.GIF" alt="" />',
+      # link image
+      '!logo.gif!:http://foo.bar/' => '<a href="http://foo.bar/"><img src="/attachments/download/3" title="This is a logo" alt="This is a logo" /></a>',
     }
     attachments = Attachment.find(:all)
     to_test.each { |text, result| assert_equal "<p>#{result}</p>", textilizable(text, :attachments => attachments) }
@@ -114,13 +132,15 @@ class ApplicationHelperTest < HelperTestCase
       "\"system administrator\":mailto:sysadmin@example.com?subject=redmine%20permissions" => "<a href=\"mailto:sysadmin@example.com?subject=redmine%20permissions\">system administrator</a>",
       # two exclamation marks
       '"a link":http://example.net/path!602815048C7B5C20!302.html' => '<a href="http://example.net/path!602815048C7B5C20!302.html" class="external">a link</a>',
+      # escaping
+      '"test":http://foo"bar' => '<a href="http://foo&quot;bar" class="external">test</a>',
     }
     to_test.each { |text, result| assert_equal "<p>#{result}</p>", textilizable(text) }
   end
   
   def test_redmine_links
     issue_link = link_to('#3', {:controller => 'issues', :action => 'show', :id => 3}, 
-                               :class => 'issue', :title => 'Error 281 when updating a recipe (New)')
+                               :class => 'issue status-1 priority-1 overdue', :title => 'Error 281 when updating a recipe (New)')
     
     changeset_link = link_to('r1', {:controller => 'repositories', :action => 'revision', :id => 'ecookbook', :rev => 1},
                                    :class => 'changeset', :title => 'My very first commit')
@@ -135,12 +155,14 @@ class ApplicationHelperTest < HelperTestCase
 
     message_url = {:controller => 'messages', :action => 'show', :board_id => 1, :id => 4}
     
+    project_url = {:controller => 'projects', :action => 'show', :id => 'subproject1'}
+    
     source_url = {:controller => 'repositories', :action => 'entry', :id => 'ecookbook', :path => ['some', 'file']}
     source_url_with_ext = {:controller => 'repositories', :action => 'entry', :id => 'ecookbook', :path => ['some', 'file.ext']}
     
     to_test = {
       # tickets
-      '#3, #3 and #3.'              => "#{issue_link}, #{issue_link} and #{issue_link}.",
+      '#3, [#3], (#3) and #3.'      => "#{issue_link}, [#{issue_link}], (#{issue_link}) and #{issue_link}.",
       # changesets
       'r1'                          => changeset_link,
       'r1.'                         => "#{changeset_link}.",
@@ -169,6 +191,10 @@ class ApplicationHelperTest < HelperTestCase
       # message
       'message#4'                   => link_to('Post 2', message_url, :class => 'message'),
       'message#5'                   => link_to('RE: post 2', message_url.merge(:anchor => 'message-5'), :class => 'message'),
+      # project
+      'project#3'                   => link_to('eCookbook Subproject 1', project_url, :class => 'project'),
+      'project:subproject1'         => link_to('eCookbook Subproject 1', project_url, :class => 'project'),
+      'project:"eCookbook subProject 1"'        => link_to('eCookbook Subproject 1', project_url, :class => 'project'),
       # escaping
       '!#3.'                        => '#3.',
       '!r1'                         => 'r1',
@@ -178,13 +204,23 @@ class ApplicationHelperTest < HelperTestCase
       '!version:1.0'                => 'version:1.0',
       '!version:"1.0"'              => 'version:"1.0"',
       '!source:/some/file'          => 'source:/some/file',
+      # not found
+      '#0123456789'                 => '#0123456789',
       # invalid expressions
       'source:'                     => 'source:',
       # url hash
       "http://foo.bar/FAQ#3"       => '<a class="external" href="http://foo.bar/FAQ#3">http://foo.bar/FAQ#3</a>',
     }
     @project = Project.find(1)
-    to_test.each { |text, result| assert_equal "<p>#{result}</p>", textilizable(text) }
+    to_test.each { |text, result| assert_equal "<p>#{result}</p>", textilizable(text), "#{text} failed" }
+  end
+  
+  def test_attachment_links
+    attachment_link = link_to('error281.txt', {:controller => 'attachments', :action => 'download', :id => '1'}, :class => 'attachment')
+    to_test = {
+      'attachment:error281.txt'      => attachment_link
+    }
+    to_test.each { |text, result| assert_equal "<p>#{result}</p>", textilizable(text, :attachments => Issue.find(3).attachments), "#{text} failed" }
   end
   
   def test_wiki_links
@@ -243,16 +279,79 @@ class ApplicationHelperTest < HelperTestCase
     to_test.each { |text, result| assert_equal result, textilizable(text) }
   end
   
-  def syntax_highlight
+  def test_pre_tags
     raw = <<-RAW
-<pre><code class="ruby">
-# Some ruby code here
-</pre></code>
+Before
+
+<pre>
+<prepared-statement-cache-size>32</prepared-statement-cache-size>
+</pre>
+
+After
 RAW
 
     expected = <<-EXPECTED
-<pre><code class="ruby CodeRay"><span class="no">1</span> <span class="c"># Some ruby code here</span>
-</pre></code>
+<p>Before</p>
+<pre>
+&lt;prepared-statement-cache-size&gt;32&lt;/prepared-statement-cache-size&gt;
+</pre>
+<p>After</p>
+EXPECTED
+    
+    assert_equal expected.gsub(%r{[\r\n\t]}, ''), textilizable(raw).gsub(%r{[\r\n\t]}, '')
+  end
+  
+  def test_pre_content_should_not_parse_wiki_and_redmine_links
+    raw = <<-RAW
+[[CookBook documentation]]
+  
+#1
+
+<pre>
+[[CookBook documentation]]
+  
+#1
+</pre>
+RAW
+
+    expected = <<-EXPECTED
+<p><a href="/projects/ecookbook/wiki/CookBook_documentation" class="wiki-page">CookBook documentation</a></p>
+<p><a href="/issues/1" class="issue status-1 priority-1" title="Can't print recipes (New)">#1</a></p>
+<pre>
+[[CookBook documentation]]
+
+#1
+</pre>
+EXPECTED
+                                 
+    @project = Project.find(1)
+    assert_equal expected.gsub(%r{[\r\n\t]}, ''), textilizable(raw).gsub(%r{[\r\n\t]}, '')
+  end
+  
+  def test_non_closing_pre_blocks_should_be_closed
+    raw = <<-RAW
+<pre><code>
+RAW
+
+    expected = <<-EXPECTED
+<pre><code>
+</code></pre>
+EXPECTED
+                                 
+    @project = Project.find(1)
+    assert_equal expected.gsub(%r{[\r\n\t]}, ''), textilizable(raw).gsub(%r{[\r\n\t]}, '')
+  end
+  
+  def test_syntax_highlight
+    raw = <<-RAW
+<pre><code class="ruby">
+# Some ruby code here
+</code></pre>
+RAW
+
+    expected = <<-EXPECTED
+<pre><code class="ruby syntaxhl"><span class=\"CodeRay\"><span class="no">1</span> <span class="c"># Some ruby code here</span></span>
+</code></pre>
 EXPECTED
 
     assert_equal expected.gsub(%r{[\r\n\t]}, ''), textilizable(raw).gsub(%r{[\r\n\t]}, '')
@@ -321,6 +420,10 @@ h2. Subtitle with %{color:red}red text%
 
 h1. Another title
 
+h2. An "Internet link":http://www.redmine.org/ inside subtitle
+
+h2. "Project Name !/attachments/1234/logo_small.gif! !/attachments/5678/logo_2.png!":/projects/projectname/issues
+
 RAW
 
     expected = '<ul class="toc">' +
@@ -329,8 +432,10 @@ RAW
                '<li class="heading2"><a href="#Subtitle-with-another-Wiki-link">Subtitle with another Wiki link</a></li>' + 
                '<li class="heading2"><a href="#Subtitle-with-red-text">Subtitle with red text</a></li>' +
                '<li class="heading1"><a href="#Another-title">Another title</a></li>' +
+               '<li class="heading2"><a href="#An-Internet-link-inside-subtitle">An Internet link inside subtitle</a></li>' +
+               '<li class="heading2"><a href="#Project-Name">Project Name</a></li>' +
                '</ul>'
-               
+
     assert textilizable(raw).gsub("\n", "").include?(expected)
   end
   
@@ -435,6 +540,10 @@ EXPECTED
     assert_equal expected.gsub(%r{\s+}, ''), textilizable(raw).gsub(%r{\s+}, '')
   end
   
+  def test_textile_should_not_mangle_brackets
+    assert_equal '<p>[msg1][msg2]</p>', textilizable('[msg1][msg2]')
+  end
+  
   def test_default_formatter
     Setting.text_formatting = 'unknown'
     text = 'a *link*: http://www.example.net/'
@@ -446,10 +555,10 @@ EXPECTED
     to_test = { Date.today => 'Due in 0 days',
                 Date.today + 1 => 'Due in 1 day',
                 Date.today + 100 => 'Due in about 3 months',
-                Date.today + 20000 => 'Due in over 55 years',
+                Date.today + 20000 => 'Due in over 54 years',
                 Date.today - 1 => '1 day late',
                 Date.today - 100 => 'about 3 months late',
-                Date.today - 20000 => 'over 55 years late',
+                Date.today - 20000 => 'over 54 years late',
                }
     to_test.each do |date, expected|
       assert_equal expected, due_date_distance_in_words(date)
@@ -467,5 +576,25 @@ EXPECTED
     # turn off avatars
     Setting.gravatar_enabled = '0'
     assert_nil avatar(User.find_by_mail('jsmith@somenet.foo'))
+  end
+  
+  def test_link_to_user
+    user = User.find(2)
+    t = link_to_user(user)
+    assert_equal "<a href=\"/users/2\">#{ user.name }</a>", t
+  end
+                                      
+  def test_link_to_user_should_not_link_to_locked_user
+    user = User.find(5)
+    assert user.locked?
+    t = link_to_user(user)
+    assert_equal user.name, t
+  end
+                                                                          
+  def test_link_to_user_should_not_link_to_anonymous
+    user = User.anonymous
+    assert user.anonymous?
+    t = link_to_user(user)
+    assert_equal ::I18n.t(:label_user_anonymous), t
   end
 end

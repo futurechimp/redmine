@@ -65,7 +65,7 @@ module Redmine
           cmd = "#{HG_BIN} -R #{target('')} root"
           root_url = nil
           shellout(cmd) do |io|
-            root_url = io.gets
+            root_url = io.read
           end
           return nil if $? && $?.exitstatus != 0
           info = Info.new({:root_url => root_url.chomp,
@@ -93,7 +93,7 @@ module Redmine
                                        :path => (path.nil? or path.empty? ? e.first : "#{with_trailling_slash(path)}#{e.first}"),
                                        :kind => (e.size > 1 ? 'dir' : 'file'),
                                        :lastrev => Revision.new
-                                     }) unless entries.detect{|entry| entry.name == e.first}
+                                     }) unless e.empty? || entries.detect{|entry| entry.name == e.first}
               end
             end
           end

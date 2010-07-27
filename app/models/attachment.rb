@@ -58,6 +58,9 @@ class Attachment < ActiveRecord::Base
         self.filename = sanitize_filename(@temp_file.original_filename)
         self.disk_filename = Attachment.disk_filename(filename)
         self.content_type = @temp_file.content_type.to_s.chomp
+        if content_type.blank?
+          self.content_type = Redmine::MimeType.of(filename)
+        end
         self.filesize = @temp_file.size
       end
     end
@@ -130,6 +133,33 @@ class Attachment < ActiveRecord::Base
   def readable?
     File.readable?(diskfile)
   end
+
+  # Bulk attaches a set of files to an object
+  #
+  # Returns a Hash of the results:
+  # :files => array of the attached files
+  # :unsaved => array of the files that could not be attached
+  def self.attach_files(obj, attachments)
+    attached = []
+    if attachments && attachments.is_a?(Hash)
+      attachments.each_value do |attachment|
+        file = attachment['file']
+        next unless file && file.size > 0
+        a = Attachment.create(:container => obj, 
+                              :file => file,
+                              :description => attachment['description'].to_s.strip,
+                              :author => User.current)
+
+        if a.new_record?
+          obj.unsaved_attachments ||= []
+          obj.unsaved_attachments << a
+        else
+          attached << a
+        end
+      end
+    end
+    {:files => attached, :unsaved => obj.unsaved_attachments}
+  end
   
 private
   def sanitize_filename(value)
@@ -144,14 +174,18 @@ private
   
   # Returns an ASCII or hashed filename
   def self.disk_filename(filename)
-    df = DateTime.now.strftime("%y%m%d%H%M%S") + "_"
+    timestamp = DateTime.now.strftime("%y%m%d%H%M%S")
+    ascii = ''
     if filename =~ %r{^[a-zA-Z0-9_\.\-]*$}
-      df << filename
+      ascii = filename
     else
-      df << Digest::MD5.hexdigest(filename)
+      ascii = Digest::MD5.hexdigest(filename)
       # keep the extension if any
-      df << $1 if filename =~ %r{(\.[a-zA-Z0-9]+)$}
+      ascii << $1 if filename =~ %r{(\.[a-zA-Z0-9]+)$}
     end
-    df
+    while File.exist?(File.join(@@storage_path, "#{timestamp}_#{ascii}"))
+      timestamp.succ!
+    end
+    "#{timestamp}_#{ascii}"
   end
 end

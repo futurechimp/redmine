@@ -1,5 +1,6 @@
 # Polish translations for Ruby on Rails
 # by Jacek Becela (jacek.becela@gmail.com, http://github.com/ncr)
+# by Krzysztof Podejma (kpodejma@customprojects.pl, http://www.customprojects.pl)
 
 pl:
   number:
@@ -21,7 +22,16 @@ pl:
       format:
         delimiter: ""
         precision: 1
-      storage_units: [B, KB, MB, GB, TB]
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: "B"
+            other: "B"
+          kb: "KB"
+          mb: "MB"
+          gb: "GB"
+          tb: "TB"
 
   date:
     formats:
@@ -84,6 +94,9 @@ pl:
         one:   "ponad rok"
         few:   "ponad {{count}} lata"
         other: "ponad {{count}} lat"
+      almost_x_years:
+        one:   "almost 1 year"
+        other: "almost {{count}} years"
 
   activerecord:
     errors:
@@ -168,7 +181,7 @@ pl:
   default_activity_development: Rozwój
   default_doc_category_tech: Dokumentacja techniczna
   default_doc_category_user: Dokumentacja użytkownika
-  default_issue_status_assigned: Przypisany
+  default_issue_status_in_progress: W Toku
   default_issue_status_closed: Zamknięty
   default_issue_status_feedback: Odpowiedź
   default_issue_status_new: Nowy
@@ -179,7 +192,7 @@ pl:
   default_priority_low: Niski
   default_priority_normal: Normalny
   default_priority_urgent: Pilny
-  default_role_developper: Programista
+  default_role_developer: Programista
   default_role_manager: Kierownik
   default_role_reporter: Wprowadzajacy
   default_tracker_bug: Błąd
@@ -232,12 +245,11 @@ pl:
   field_is_default: Domyślny status
   field_is_filter: Atrybut filtrowania
   field_is_for_all: Dla wszystkich projektów
-  field_is_in_chlog: Zagadnienie pokazywane w zapisie zmian
   field_is_in_roadmap: Zagadnienie pokazywane na mapie
   field_is_public: Publiczny
   field_is_required: Wymagane
   field_issue: Zagadnienie
-  field_issue_to_id: Powiązania zagadnienia
+  field_issue_to: Powiązania zagadnienia
   field_language: Język
   field_last_login_on: Ostatnie połączenie
   field_lastname: Nazwisko
@@ -328,7 +340,6 @@ pl:
   label_browse: Przegląd
   label_bulk_edit_selected_issues: Zbiorowa edycja zagadnień
   label_calendar: Kalendarz
-  label_change_log: Lista zmian
   label_change_plural: Zmiany
   label_change_properties: Zmień właściwości
   label_change_status: Status zmian
@@ -426,7 +437,7 @@ pl:
   label_in_less_than: mniejsze niż
   label_in_more_than: większe niż
   label_incoming_emails: Przychodząca poczta elektroniczna
-  label_index_by_date: Index by date
+  label_index_by_date: Indeks wg daty
   label_index_by_title: Indeks
   label_information: Informacja
   label_information_plural: Informacje
@@ -770,9 +781,6 @@ pl:
   text_issue_updated: "Zagadnienie {{id}} zostało zaktualizowane (by {{author}})."
   text_issues_destroy_confirmation: 'Czy jestes pewien, że chcesz usunąć wskazane zagadnienia?'
   text_issues_ref_in_commit_messages: Odwołania do zagadnień w komentarzach zatwierdzeń
-  text_journal_changed: "zmienione {{old}} do {{new}}"
-  text_journal_deleted: usunięte
-  text_journal_set_to: "ustawione na {{value}}"
   text_length_between: "Długość pomiędzy {{min}} i {{max}} znaków."
   text_load_default_configuration: Załaduj domyślną konfigurację
   text_min_max_length_info: 0 oznacza brak restrykcji
@@ -824,13 +832,100 @@ pl:
   text_wiki_page_reassign_children: Reassign child pages to this parent page
   text_wiki_page_nullify_children: Keep child pages as root pages
   text_wiki_page_destroy_children: Delete child pages and all their descendants
-  setting_password_min_length: Minimum password length
-  field_group_by: Group results by
-  mail_subject_wiki_content_updated: "'{{page}}' wiki page has been updated"
-  label_wiki_content_added: Wiki page added
-  mail_subject_wiki_content_added: "'{{page}}' wiki page has been added"
-  mail_body_wiki_content_added: The '{{page}}' wiki page has been added by {{author}}.
-  label_wiki_content_updated: Wiki page updated
-  mail_body_wiki_content_updated: The '{{page}}' wiki page has been updated by {{author}}.
-  permission_add_project: Create project
-  setting_new_project_user_role_id: Role given to a non-admin user who creates a project
+  setting_password_min_length: Minimalna długość hasła
+  field_group_by: Grupuj wyniki wg
+  mail_subject_wiki_content_updated: "Strona wiki '{{page}}' została uaktualniona"
+  label_wiki_content_added: Dodano stronę wiki
+  mail_subject_wiki_content_added: "Strona wiki '{{page}}' została dodana"
+  mail_body_wiki_content_added: Strona wiki '{{page}}' została dodana przez {{author}}.
+  label_wiki_content_updated: Uaktualniono stronę wiki
+  mail_body_wiki_content_updated: Strona wiki '{{page}}' została uaktualniona przez {{author}}.
+  permission_add_project: Tworzenie projektu
+  setting_new_project_user_role_id: Rola nadawana twórcom projektów, którzy nie posiadają uprawnień administatora
+  label_view_all_revisions: Pokaż wszystkie rewizje
+  label_tag: Tag
+  label_branch: Gałąź
+  error_no_tracker_in_project: Projekt nie posiada powiązanych typów zagadnień. Sprawdź ustawienia projektu.
+  error_no_default_issue_status: Nie zdefiniowano domyślnego statusu zagadnień. Sprawdź konfigurację (Przejdź do "Administracja -> Statusy zagadnień).
+  text_journal_changed: "Zmieniono {{label}} z {{old}} na {{new}}"
+  text_journal_set_to: "Ustawiono {{label}} na {{value}}"
+  text_journal_deleted: "Usunięto {{label}} ({{old}})"
+  label_group_plural: Grupy
+  label_group: Grupa
+  label_group_new: Nowa grupa
+  label_time_entry_plural: Spędzony czas
+  text_journal_added: "Dodano {{label}} {{value}}"
+  field_active: Aktywne
+  enumeration_system_activity: Aktywność Systemowa
+  button_copy_and_follow: Kopiuj i przejdź do kopii zagadnienia
+  button_duplicate: Duplikuj
+  button_move_and_follow: Przenieś i przejdź do zagadnienia
+  button_show: Pokaż
+  error_can_not_archive_project: Ten projekt nie może zostać zarchiwizowany
+  error_can_not_reopen_issue_on_closed_version: Zagadnienie przydzielone do zakończonej wersji nie może zostać ponownie otwarte
+  error_issue_done_ratios_not_updated: % wykonania zagadnienia nie został uaktualniony.
+  error_workflow_copy_source: Proszę wybrać źródłowy typ zagadnienia lub rolę
+  error_workflow_copy_target: Proszę wybrać docelowe typ(y) zagadnień i rolę(e)
+  field_sharing: Współdzielenie
+  label_api_access_key: Klucz dostępu do API
+  label_api_access_key_created_on: Klucz dostępu do API został utworzony {{value}} temu
+  label_close_versions: Zamknij ukończone wersje
+  label_copy_same_as_target: Jak cel
+  label_copy_source: Źródło
+  label_copy_target: Cel
+  label_display_used_statuses_only: Wyświetlaj tylko statusy używane przez ten typ zagadnienia
+  label_feeds_access_key: Klucz dostępu do RSS
+  label_missing_api_access_key: Brakuje klucza dostępu do API
+  label_missing_feeds_access_key: Brakuje klucza dostępu do RSS
+  label_revision_id: Rewizja {{value}}
+  label_subproject_new: Nowy podprojekt
+  label_update_issue_done_ratios: Uaktualnij % wykonania
+  label_user_anonymous: Anonimowy
+  label_version_sharing_descendants: Z podprojektami
+  label_version_sharing_hierarchy: Z hierarchią projektów
+  label_version_sharing_none: Brak współdzielenia
+  label_version_sharing_system: Ze wszystkimi projektami
+  label_version_sharing_tree: Z drzewem projektów
+  notice_api_access_key_reseted: Twój klucz dostępu do API został zresetowany.
+  notice_issue_done_ratios_updated: Uaktualnienie % wykonania zakończone sukcesem.
+  permission_add_subprojects: Tworzenie podprojektów
+  permission_delete_issue_watchers: Usuń obserwatorów
+  permission_view_issues: Przeglądanie zagadnień
+  setting_default_projects_modules: Domyślnie włączone moduły dla nowo tworzonych projektów
+  setting_gravatar_default: Domyślny obraz Gravatar
+  setting_issue_done_ratio: Obliczaj postęp realizacji zagadnień za pomocą
+  setting_issue_done_ratio_issue_field: % Wykonania zagadnienia
+  setting_issue_done_ratio_issue_status: Statusu zagadnienia
+  setting_mail_handler_body_delimiters: Przycinaj e-maile po jednej z tych linii
+  setting_rest_api_enabled: Uaktywnij usługę sieciową REST
+  setting_start_of_week: Pierwszy dzień tygodnia
+  text_line_separated: Dozwolone jest wiele wartości (każda wartość w osobnej linii).
+  text_own_membership_delete_confirmation: |-
+    Masz zamiar usunąć niektóre lub wszystkie swoje uprawnienia. Po wykonaniu tej czynności możesz utracić możliwości edycji tego projektu.
+    Czy na pewno chcesz kontynuować?
+  version_status_closed: zamknięta
+  version_status_locked: zablokowana
+  version_status_open: otwarta
+  
+  label_board_sticky: Przyklejona
+  label_board_locked: Zamknięta
+  permission_export_wiki_pages: Eksport stron wiki
+  permission_manage_project_activities: Zarządzanie aktywnościami projektu
+  setting_cache_formatted_text: Cache formatted text
+  error_unable_delete_issue_status: Unable to delete issue status
+  label_profile: Profile
+  permission_manage_subtasks: Manage subtasks
+  field_parent_issue: Parent task
+  label_subtask_plural: Subtasks
+  label_project_copy_notifications: Send email notifications during the project copy
+  error_can_not_delete_custom_field: Unable to delete custom field
+  error_unable_to_connect: Unable to connect ({{value}})
+  error_can_not_remove_role: This role is in use and can not be deleted.
+  error_can_not_delete_tracker: This tracker contains issues and can't be deleted.
+  field_principal: Principal
+  label_my_page_block: My page block
+  notice_failed_to_save_members: "Failed to save member(s): {{errors}}."
+  text_zoom_out: Zoom out
+  text_zoom_in: Zoom in
+  notice_unable_delete_time_entry: Unable to delete time log entry.
+  label_overall_spent_time: Overall spent time

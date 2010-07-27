@@ -6,11 +6,6 @@ ActionController::Routing::Routes.draw do |map|
   # map.connect 'products/:id', :controller => 'catalog', :action => 'view'
   # Keep in mind you can assign values other than :controller and :action
 
-  # Allow Redmine plugins to map routes and potentially override them
-  Rails.plugins.each do |plugin|
-    map.from_plugin plugin.name.to_sym
-  end
-
   map.home '', :controller => 'welcome'
   
   map.signin 'login', :controller => 'account', :action => 'login'
@@ -115,8 +110,8 @@ ActionController::Routing::Routes.draw do |map|
       issues_views.connect 'projects/:project_id/issues', :action => 'index'
       issues_views.connect 'projects/:project_id/issues.:format', :action => 'index'
       issues_views.connect 'projects/:project_id/issues/new', :action => 'new'
-      issues_views.connect 'projects/:project_id/issues/gantt', :action => 'gantt'
-      issues_views.connect 'projects/:project_id/issues/calendar', :action => 'calendar'
+      issues_views.connect 'projects/:project_id/issues/gantt', :controller => 'gantts', :action => 'show'
+      issues_views.connect 'projects/:project_id/issues/calendar', :controller => 'calendars', :action => 'show'
       issues_views.connect 'projects/:project_id/issues/:copy_from/copy', :action => 'new'
       issues_views.connect 'issues/:id', :action => 'show', :id => /\d+/
       issues_views.connect 'issues/:id.:format', :action => 'show', :id => /\d+/
@@ -124,10 +119,23 @@ ActionController::Routing::Routes.draw do |map|
       issues_views.connect 'issues/:id/move', :action => 'move', :id => /\d+/
     end
     issues_routes.with_options :conditions => {:method => :post} do |issues_actions|
-      issues_actions.connect 'projects/:project_id/issues', :action => 'new'
+      issues_actions.connect 'issues', :action => 'index'
+      issues_actions.connect 'projects/:project_id/issues', :action => 'create'
+      issues_actions.connect 'projects/:project_id/issues/gantt', :controller => 'gantts', :action => 'show'
+      issues_actions.connect 'projects/:project_id/issues/calendar', :controller => 'calendars', :action => 'show'
       issues_actions.connect 'issues/:id/quoted', :action => 'reply', :id => /\d+/
       issues_actions.connect 'issues/:id/:action', :action => /edit|move|destroy/, :id => /\d+/
+      issues_actions.connect 'issues.:format', :action => 'create', :format => /xml/
     end
+    issues_routes.with_options :conditions => {:method => :put} do |issues_actions|
+      issues_actions.connect 'issues/:id/edit', :action => 'update', :id => /\d+/
+      issues_actions.connect 'issues/:id.:format', :action => 'update', :id => /\d+/, :format => /xml/
+    end
+    issues_routes.with_options :conditions => {:method => :delete} do |issues_actions|
+      issues_actions.connect 'issues/:id.:format', :action => 'destroy', :id => /\d+/, :format => /xml/
+    end
+    issues_routes.connect 'issues/gantt', :controller => 'gantts', :action => 'show'
+    issues_routes.connect 'issues/calendar', :controller => 'calendars', :action => 'show'
     issues_routes.connect 'issues/:action'
   end
   
@@ -136,9 +144,9 @@ ActionController::Routing::Routes.draw do |map|
     relations.connect 'issues/:issue_id/relations/:id/destroy', :action => 'destroy'
   end
   
-  map.with_options :controller => 'reports', :action => 'issue_report', :conditions => {:method => :get} do |reports|
-    reports.connect 'projects/:id/issues/report'
-    reports.connect 'projects/:id/issues/report/:detail'
+  map.with_options :controller => 'reports', :conditions => {:method => :get} do |reports|
+    reports.connect 'projects/:id/issues/report', :action => 'issue_report'
+    reports.connect 'projects/:id/issues/report/:detail', :action => 'issue_report_details'
   end
   
   map.with_options :controller => 'news' do |news_routes|
@@ -162,8 +170,8 @@ ActionController::Routing::Routes.draw do |map|
   
   map.with_options :controller => 'users' do |users|
     users.with_options :conditions => {:method => :get} do |user_views|
-      user_views.connect 'users', :action => 'list'
       user_views.connect 'users', :action => 'index'
+      user_views.connect 'users/:id', :action => 'show', :id => /\d+/
       user_views.connect 'users/new', :action => 'add'
       user_views.connect 'users/:id/edit/:tab', :action => 'edit', :tab => nil
     end
@@ -183,11 +191,10 @@ ActionController::Routing::Routes.draw do |map|
       project_views.connect 'projects.:format', :action => 'index'
       project_views.connect 'projects/new', :action => 'add'
       project_views.connect 'projects/:id', :action => 'show'
-      project_views.connect 'projects/:id/:action', :action => /roadmap|changelog|destroy|settings/
+      project_views.connect 'projects/:id.:format', :action => 'show'
+      project_views.connect 'projects/:id/:action', :action => /roadmap|destroy|settings/
       project_views.connect 'projects/:id/files', :action => 'list_files'
       project_views.connect 'projects/:id/files/new', :action => 'add_file'
-      project_views.connect 'projects/:id/versions/new', :action => 'add_version'
-      project_views.connect 'projects/:id/categories/new', :action => 'add_issue_category'
       project_views.connect 'projects/:id/settings/:tab', :action => 'settings'
     end
 
@@ -201,11 +208,31 @@ ActionController::Routing::Routes.draw do |map|
     projects.with_options :conditions => {:method => :post} do |project_actions|
       project_actions.connect 'projects/new', :action => 'add'
       project_actions.connect 'projects', :action => 'add'
-      project_actions.connect 'projects/:id/:action', :action => /destroy|archive|unarchive/
+      project_actions.connect 'projects.:format', :action => 'add', :format => /xml/
+      project_actions.connect 'projects/:id/:action', :action => /edit|destroy|archive|unarchive/
       project_actions.connect 'projects/:id/files/new', :action => 'add_file'
-      project_actions.connect 'projects/:id/versions/new', :action => 'add_version'
-      project_actions.connect 'projects/:id/categories/new', :action => 'add_issue_category'
+      project_actions.connect 'projects/:id/activities/save', :action => 'save_activities'
     end
+
+    projects.with_options :conditions => {:method => :put} do |project_actions|
+      project_actions.conditions 'projects/:id.:format', :action => 'edit', :format => /xml/
+    end
+
+    projects.with_options :conditions => {:method => :delete} do |project_actions|
+      project_actions.conditions 'projects/:id.:format', :action => 'destroy', :format => /xml/
+      project_actions.conditions 'projects/:id/reset_activities', :action => 'reset_activities'
+    end
+  end
+  
+  map.with_options :controller => 'versions' do |versions|
+    versions.connect 'projects/:project_id/versions/new', :action => 'new'
+    versions.with_options :conditions => {:method => :post} do |version_actions|
+      version_actions.connect 'projects/:project_id/versions/close_completed', :action => 'close_completed'
+    end
+  end
+  
+  map.with_options :controller => 'issue_categories' do |categories|
+    categories.connect 'projects/:project_id/issue_categories/new', :action => 'new'
   end
   
   map.with_options :controller => 'repositories' do |repositories|
@@ -218,7 +245,11 @@ ActionController::Routing::Routes.draw do |map|
       repository_views.connect 'projects/:id/repository/revisions/:rev', :action => 'revision'
       repository_views.connect 'projects/:id/repository/revisions/:rev/diff', :action => 'diff'
       repository_views.connect 'projects/:id/repository/revisions/:rev/diff.:format', :action => 'diff'
-      repository_views.connect 'projects/:id/repository/revisions/:rev/:action/*path'
+      repository_views.connect 'projects/:id/repository/revisions/:rev/raw/*path', :action => 'entry', :format => 'raw', :requirements => { :rev => /[a-z0-9\.\-_]+/ }
+      repository_views.connect 'projects/:id/repository/revisions/:rev/:action/*path', :requirements => { :rev => /[a-z0-9\.\-_]+/ }
+      repository_views.connect 'projects/:id/repository/raw/*path', :action => 'entry', :format => 'raw'
+      # TODO: why the following route is required?
+      repository_views.connect 'projects/:id/repository/entry/*path', :action => 'entry'
       repository_views.connect 'projects/:id/repository/:action/*path'
     end
     
@@ -229,7 +260,8 @@ ActionController::Routing::Routes.draw do |map|
   map.connect 'attachments/:id/:filename', :controller => 'attachments', :action => 'show', :id => /\d+/, :filename => /.*/
   map.connect 'attachments/download/:id/:filename', :controller => 'attachments', :action => 'download', :id => /\d+/, :filename => /.*/
    
-
+  map.resources :groups
+  
   #left old routes at the bottom for backwards compat
   map.connect 'projects/:project_id/issues/:action', :controller => 'issues'
   map.connect 'projects/:project_id/documents/:action', :controller => 'documents'

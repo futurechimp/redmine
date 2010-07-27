@@ -16,7 +16,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 class EnumerationsController < ApplicationController
+  layout 'admin'
+  
   before_filter :require_admin
+
+  helper :custom_fields
+  include CustomFieldsHelper
   
   def index
     list
@@ -71,12 +76,12 @@ class EnumerationsController < ApplicationController
       @enumeration.destroy
       redirect_to :action => 'index'
     elsif params[:reassign_to_id]
-      if reassign_to = Enumeration.find_by_type_and_id(@enumeration.type, params[:reassign_to_id])
+      if reassign_to = @enumeration.class.find_by_id(params[:reassign_to_id])
         @enumeration.destroy(reassign_to)
         redirect_to :action => 'index'
       end
     end
-    @enumerations = Enumeration.find(:all, :conditions => ['type = (?)', @enumeration.type]) - [@enumeration]
+    @enumerations = @enumeration.class.find(:all) - [@enumeration]
   #rescue
   #  flash[:error] = 'Unable to delete enumeration'
   #  redirect_to :action => 'index'

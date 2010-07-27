@@ -17,13 +17,16 @@
 
 class IssueStatus < ActiveRecord::Base
   before_destroy :check_integrity  
-  has_many :workflows, :foreign_key => "old_status_id", :dependent => :delete_all
+  has_many :workflows, :foreign_key => "old_status_id"
   acts_as_list
+  
+  before_destroy :delete_workflows
 
   validates_presence_of :name
   validates_uniqueness_of :name
   validates_length_of :name, :maximum => 30
   validates_format_of :name, :with => /^[\w\s\'\-]*$/i
+  validates_inclusion_of :default_done_ratio, :in => 0..100, :allow_nil => true
 
   def after_save
     IssueStatus.update_all("is_default=#{connection.quoted_false}", ['id <> ?', id]) if self.is_default?
@@ -32,6 +35,18 @@ class IssueStatus < ActiveRecord::Base
   # Returns the default status for new issues
   def self.default
     find(:first, :conditions =>["is_default=?", true])
+  end
+  
+  # Update all the +Issues+ setting their done_ratio to the value of their +IssueStatus+
+  def self.update_issue_done_ratios
+    if Issue.use_status_for_done_ratio?
+      IssueStatus.find(:all, :conditions => ["default_done_ratio >= 0"]).each do |status|
+        Issue.update_all(["done_ratio = ?", status.default_done_ratio],
+                         ["status_id = ?", status.id])
+      end
+    end
+
+    return Issue.use_status_for_done_ratio?
   end
 
   # Returns an array of all statuses the given role can switch to
@@ -75,5 +90,10 @@ class IssueStatus < ActiveRecord::Base
 private
   def check_integrity
     raise "Can't delete status" if Issue.find(:first, :conditions => ["status_id=?", self.id])
+  end
+  
+  # Deletes associated workflows
+  def delete_workflows
+    Workflow.delete_all(["old_status_id = :id OR new_status_id = :id", {:id => id}])
   end
 end

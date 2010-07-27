@@ -10,14 +10,17 @@ roles_001:
     - :manage_members
     - :manage_versions
     - :manage_categories
+    - :view_issues
     - :add_issues
     - :edit_issues
     - :manage_issue_relations
+    - :manage_subtasks
     - :add_issue_notes
     - :move_issues
     - :delete_issues
     - :view_issue_watchers
     - :add_issue_watchers
+    - :delete_issue_watchers
     - :manage_public_queries
     - :save_queries
     - :view_gantt
@@ -31,6 +34,7 @@ roles_001:
     - :view_documents
     - :manage_documents
     - :view_wiki_pages
+    - :export_wiki_pages
     - :view_wiki_edits
     - :edit_wiki_pages
     - :delete_wiki_pages_attachments
@@ -46,6 +50,7 @@ roles_001:
     - :browse_repository
     - :manage_repository
     - :view_changesets
+    - :manage_project_activities
 
   position: 1
 roles_002: 
@@ -58,9 +63,11 @@ roles_002:
     - :manage_members
     - :manage_versions
     - :manage_categories
+    - :view_issues
     - :add_issues
     - :edit_issues
     - :manage_issue_relations
+    - :manage_subtasks
     - :add_issue_notes
     - :move_issues
     - :delete_issues
@@ -100,6 +107,7 @@ roles_003:
     - :manage_members
     - :manage_versions
     - :manage_categories
+    - :view_issues
     - :add_issues
     - :edit_issues
     - :manage_issue_relations
@@ -133,6 +141,7 @@ roles_004:
   builtin: 1
   permissions: |
     --- 
+    - :view_issues
     - :add_issues
     - :edit_issues
     - :manage_issue_relations
@@ -162,6 +171,7 @@ roles_005:
   builtin: 2
   permissions: |
     --- 
+    - :view_issues
     - :add_issue_notes
     - :view_gantt
     - :view_calendar
@@ -174,4 +184,4 @@ roles_005:
     - :view_changesets
 
   position: 5
-  
+

@@ -1,5 +1,6 @@
-# Swedish translation, by Johan Lundström (johanlunds@gmail.com), with parts taken
-# from http://github.com/daniel/swe_rails
+# Swedish translation for Ruby on Rails
+# by Johan Lundström (johanlunds@gmail.com),
+# with parts taken from http://github.com/daniel/swe_rails
 
 sv:
   number:
@@ -47,7 +48,16 @@ sv:
         # separator: 
         delimiter: ""
         # precision: 1
-      storage_units: [Byte, KB, MB, GB, TB]
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: "Byte"
+            other: "Bytes"
+          kb: "KB"
+          mb: "MB"
+          gb: "GB"
+          tb: "TB"
 
   # Used in distance_of_time_in_words(), distance_of_time_in_words_to_now(), time_ago_in_words()
   datetime:
@@ -83,6 +93,9 @@ sv:
       over_x_years:
         one:   "mer än ett år"
         other: "mer än {{count}} år"
+      almost_x_years:
+        one:   "nästan 1 år"
+        other: "nästan {{count}} år"
         
   activerecord:
     errors:
@@ -183,17 +196,33 @@ sv:
   notice_email_sent: "Ett mail skickades till {{value}}"
   notice_email_error: "Ett fel inträffade när mail skickades ({{value}})"
   notice_feeds_access_key_reseted: Din RSS-nyckel återställdes.
-  notice_failed_to_save_issues: "Misslyckades att spara {{count}} ärende(n) på {{total}} valt: {{ids}}."
+  notice_api_access_key_reseted: Din API-nyckel återställdes.
+  notice_failed_to_save_issues: "Misslyckades med att spara {{count}} ärende(n) på {{total}} valt: {{ids}}."
+  notice_failed_to_save_members: "Misslyckades med att spara medlem(mar): {{errors}}."
   notice_no_issue_selected: "Inget ärende är markerat! Var vänlig, markera de ärenden du vill ändra."
   notice_account_pending: "Ditt konto skapades och avvaktar nu administratörens godkännande."
   notice_default_data_loaded: Standardkonfiguration inläst.
   notice_unable_delete_version: Denna version var inte möjlig att ta bort.
+  notice_unable_delete_time_entry: Tidloggning kunde inte tas bort.
+  notice_issue_done_ratios_updated: % klart uppdaterade.
   
   error_can_t_load_default_data: "Standardkonfiguration gick inte att läsa in: {{value}}"
   error_scm_not_found: "Inlägg och/eller revision finns inte i detta versionsarkiv."
   error_scm_command_failed: "Ett fel inträffade vid försök att nå versionsarkivet: {{value}}"
   error_scm_annotate: "Inlägget existerar inte eller kan inte kommenteras."
   error_issue_not_found_in_project: 'Ärendet hittades inte eller så tillhör det inte detta projekt'
+  error_no_tracker_in_project: 'Ingen ärendetyp är associerad med projektet. Vänligen kontrollera projektinställningarna.'
+  error_no_default_issue_status: 'Ingen status är definierad som standard för nya ärenden. Vänligen kontrollera din konfiguration (Gå till "Administration -> Ärendestatus").'
+  error_can_not_delete_custom_field: Kan inte ta bort användardefinerat fält
+  error_can_not_delete_tracker: Det finns ärenden av denna typ och den är därför inte möjlig att ta bort.
+  error_can_not_remove_role: "Denna roll används och den är därför inte möjlig att ta bort."
+  error_can_not_reopen_issue_on_closed_version: 'Ett ärende tilldelat en stängd version kan inte öppnas på nytt'
+  error_can_not_archive_project: Detta projekt kan inte arkiveras
+  error_issue_done_ratios_not_updated: "% klart inte uppdaterade."
+  error_workflow_copy_source: 'Vänligen välj källans ärendetyp eller roll'
+  error_workflow_copy_target: 'Vänligen välj ärendetyp(er) och roll(er) för mål'
+  error_unable_delete_issue_status: 'Ärendestatus kunde inte tas bort'
+  error_unable_to_connect: Kan inte ansluta ({{value}})
   
   warning_attachments_not_saved: "{{count}} fil(er) kunde inte sparas."
   
@@ -250,11 +279,11 @@ sv:
   field_priority: Prioritet
   field_fixed_version: Versionsmål
   field_user: Användare
+  field_principal: Principal
   field_role: Roll
   field_homepage: Hemsida
   field_is_public: Publik
   field_parent: Underprojekt till
-  field_is_in_chlog: Visa ärenden i ändringslogg
   field_is_in_roadmap: Visa ärenden i roadmap
   field_login: Användarnamn
   field_mail_notification: Mailnotifieringar
@@ -289,7 +318,7 @@ sv:
   field_spent_on: Datum
   field_identifier: Identifierare
   field_is_filter: Använd som filter
-  field_issue_to_id: Relaterade ärenden
+  field_issue_to: Relaterade ärenden
   field_delay: Fördröjning
   field_assignable: Ärenden kan tilldelas denna roll
   field_redirect_existing_links: Omdirigera existerande länkar
@@ -305,6 +334,8 @@ sv:
   field_identity_url: OpenID URL
   field_content: Innehåll
   field_group_by: Gruppera resultat efter
+  field_sharing: Delning
+  field_parent_issue: Förälderaktivitet
   
   setting_app_title: Applikationsrubrik
   setting_app_subtitle: Applikationsunderrubrik
@@ -340,25 +371,37 @@ sv:
   setting_activity_days_default: Dagar som visas på projektaktivitet
   setting_display_subprojects_issues: Visa ärenden från underprojekt i huvudprojekt som standard
   setting_enabled_scm: Aktivera SCM
+  setting_mail_handler_body_delimiters: Trunkera mail efter en av följande rader
   setting_mail_handler_api_enabled: Aktivera WS för inkommande mail
   setting_mail_handler_api_key: API-nyckel
   setting_sequential_project_identifiers: Generera projektidentifierare sekventiellt
   setting_gravatar_enabled: Använd Gravatar-avatarer
+  setting_gravatar_default: Förvald Gravatar-bild
   setting_diff_max_lines_displayed: Maximalt antal synliga rader i diff
   setting_file_max_size_displayed: Maxstorlek på textfiler som visas inline
   setting_repository_log_display_limit: Maximalt antal revisioner i filloggen
   setting_openid: Tillåt inloggning och registrering med OpenID
   setting_password_min_length: Minsta tillåtna lösenordslängd
   setting_new_project_user_role_id: Tilldelad roll för en icke-administratör som skapar ett projekt
+  setting_default_projects_modules: Standardaktiverade moduler för nya projekt
+  setting_issue_done_ratio: Beräkna % klart med
+  setting_issue_done_ratio_issue_field: Använd ärendefältet
+  setting_issue_done_ratio_issue_status: Använd ärendestatus
+  setting_start_of_week: Första dagen i veckan
+  setting_rest_api_enabled: Aktivera REST webbtjänst
+  setting_cache_formatted_text: Cacha formaterad text
   
   permission_add_project: Skapa projekt
+  permission_add_subprojects: Skapa underprojekt
   permission_edit_project: Ändra projekt
   permission_select_project_modules: Välja projektmoduler
   permission_manage_members: Hantera medlemmar
+  permission_manage_project_activities: Hantera projektaktiviteter
   permission_manage_versions: Hantera versioner
   permission_manage_categories: Hantera ärendekategorier
-  permission_add_issues: Lägga till ärende
-  permission_edit_issues: Ändra ärende
+  permission_add_issues: Lägga till ärenden
+  permission_edit_issues: Ändra ärenden
+  permission_view_issues: Visa ärenden
   permission_manage_issue_relations: Hantera ärenderelationer
   permission_add_issue_notes: Lägga till ärendenotering
   permission_edit_issue_notes: Ändra ärendenoteringar
@@ -371,6 +414,7 @@ sv:
   permission_view_calendar: Visa kalender
   permission_view_issue_watchers: Visa bevakarlista
   permission_add_issue_watchers: Lägga till bevakare
+  permission_delete_issue_watchers: Ta bort bevakare
   permission_log_time: Logga spenderad tid
   permission_view_time_entries: Visa spenderad tid
   permission_edit_time_entries: Ändra tidloggningar
@@ -400,6 +444,9 @@ sv:
   permission_edit_own_messages: Ändra egna meddelanden
   permission_delete_messages: Ta bort meddelanden
   permission_delete_own_messages: Ta bort egna meddelanden
+  permission_export_wiki_pages: Exportera wikisidor
+  permission_manage_subtasks: Hantera underaktiviteter
+  
   project_module_issue_tracking: Ärendeuppföljning
   project_module_time_tracking: Tidsuppföljning
   project_module_news: Nyheter
@@ -412,6 +459,7 @@ sv:
   label_user: Användare
   label_user_plural: Användare
   label_user_new: Ny användare
+  label_user_anonymous: Anonym
   label_project: Projekt
   label_project_new: Nytt projekt
   label_project_plural: Projekt
@@ -464,6 +512,7 @@ sv:
   label_my_page: Min sida
   label_my_account: Mitt konto
   label_my_projects: Mina projekt
+  label_my_page_block: '"Min sida"-block'
   label_administration: Administration
   label_login: Logga in
   label_logout: Logga ut
@@ -483,6 +532,7 @@ sv:
   label_auth_source_new: Nytt autentiseringsläge
   label_auth_source_plural: Autentiseringslägen
   label_subproject_plural: Underprojekt
+  label_subproject_new: Nytt underprojekt
   label_and_its_subprojects: "{{value}} och dess underprojekt"
   label_min_max_length: Min./Max.-längd
   label_list: Lista
@@ -512,12 +562,12 @@ sv:
   label_news_latest: Senaste nyheterna
   label_news_view_all: Visa alla nyheter
   label_news_added: Nyhet tillagd
-  label_change_log: Ändringslogg
   label_settings: Inställningar
   label_overview: Överblick
   label_version: Version
   label_version_new: Ny version
   label_version_plural: Versioner
+  label_close_versions: Stäng klara versioner
   label_confirmation: Bekräftelse
   label_export_to: Exportera till
   label_read: Läs...
@@ -600,8 +650,11 @@ sv:
   label_browse: Bläddra
   label_modification: "{{count}} ändring"
   label_modification_plural: "{{count}} ändringar"
+  label_branch: Branch
+  label_tag: Tag
   label_revision: Revision
   label_revision_plural: Revisioner
+  label_revision_id: Revision {{value}}
   label_associated_revisions: Associerade revisioner
   label_added: tillagd
   label_modified: modifierad
@@ -611,6 +664,7 @@ sv:
   label_latest_revision: Senaste revisionen
   label_latest_revision_plural: Senaste revisionerna
   label_view_revisions: Visa revisioner
+  label_view_all_revisions: Visa alla revisioner
   label_max_size: Maxstorlek
   label_sort_highest: Flytta till toppen
   label_sort_higher: Flytta upp
@@ -636,6 +690,7 @@ sv:
   label_changes_details: Detaljer om alla ändringar
   label_issue_tracking: Ärendeuppföljning
   label_spent_time: Spenderad tid
+  label_overall_spent_time: Total tid spenderad
   label_f_hour: "{{value}} timme"
   label_f_hour_plural: "{{value}} timmar"
   label_time_tracking: Tidsuppföljning
@@ -673,6 +728,8 @@ sv:
   label_board: Forum
   label_board_new: Nytt forum
   label_board_plural: Forum
+  label_board_locked: Låst
+  label_board_sticky: Sticky
   label_topic_plural: Ämnen
   label_message_plural: Meddelanden
   label_message_last: Senaste meddelande
@@ -688,6 +745,8 @@ sv:
   label_language_based: Språkbaserad
   label_sort_by: "Sortera på {{value}}"
   label_send_test_email: Skicka testmail
+  label_feeds_access_key: RSS-nyckel
+  label_missing_feeds_access_key: Saknar en RSS-nyckel
   label_feeds_access_key_created_on: "RSS-nyckel skapad för {{value}} sedan"
   label_module_plural: Moduler
   label_added_time_by: "Tillagd av {{author}} för {{age}} sedan"
@@ -735,9 +794,29 @@ sv:
   label_date_from_to: Från {{start}} till {{end}}
   label_wiki_content_added: Wikisida tillagd
   label_wiki_content_updated: Wikisida uppdaterad
+  label_group: Grupp
+  label_group_plural: Grupper
+  label_group_new: Ny grupp
+  label_time_entry_plural: Spenderad tid
+  label_version_sharing_none: Inte delad
+  label_version_sharing_descendants: Med underprojekt
+  label_version_sharing_hierarchy: Med projekthierarki
+  label_version_sharing_tree: Med projektträd
+  label_version_sharing_system: Med alla projekt
+  label_update_issue_done_ratios: Uppdatera % klart
+  label_copy_source: Källa
+  label_copy_target: Mål
+  label_copy_same_as_target: Samma som mål
+  label_display_used_statuses_only: Visa endast status som används av denna ärendetyp
+  label_api_access_key: API-nyckel
+  label_missing_api_access_key: Saknar en API-nyckel
+  label_api_access_key_created_on: API-nyckel skapad för {{value}} sedan
+  label_profile: Profil
+  label_subtask_plural: Underaktiviteter
+  label_project_copy_notifications: Skicka mailnotifieringar när projektet kopieras
   
   button_login: Logga in
-  button_submit: Spara
+  button_submit: Skicka
   button_save: Spara
   button_check_all: Markera alla
   button_uncheck_all: Avmarkera alla
@@ -756,6 +835,7 @@ sv:
   button_list: Lista
   button_view: Visa
   button_move: Flytta
+  button_move_and_follow: Flytta och följ efter
   button_back: Tillbaka
   button_cancel: Avbryt
   button_activate: Aktivera
@@ -771,14 +851,23 @@ sv:
   button_rename: Byt namn
   button_change_password: Ändra lösenord
   button_copy: Kopiera
+  button_copy_and_follow: Kopiera och följ efter
   button_annotate: Kommentera
   button_update: Uppdatera
   button_configure: Konfigurera
   button_quote: Citera
+  button_duplicate: Duplisera
+  button_show: Visa
   
   status_active: aktiv
   status_registered: registrerad
   status_locked: låst
+  
+  version_status_open: öppen
+  version_status_locked: låst
+  version_status_closed: stängd
+  
+  field_active: Aktiv
   
   text_select_mail_notifications: Välj för vilka händelser mail ska skickas.
   text_regexp_info: eg. ^[A-Z0-9]+$
@@ -787,9 +876,10 @@ sv:
   text_subprojects_destroy_warning: "Alla underprojekt: {{value}} kommer också tas bort."
   text_workflow_edit: Välj en roll och en ärendetyp för att ändra arbetsflöde
   text_are_you_sure: Är du säker ?
-  text_journal_changed: "ändrad från {{old}} till {{new}}"
-  text_journal_set_to: "satt till {{value}}"
-  text_journal_deleted: borttagen
+  text_journal_changed: "{{label}} ändrad från {{old}} till {{new}}"
+  text_journal_set_to: "{{label}} satt till {{value}}"
+  text_journal_deleted: "{{label}} borttagen ({{old}})"
+  text_journal_added: "{{label}} {{value}} tillagd"
   text_tip_task_begin_day: arbetsuppgift som börjar denna dag
   text_tip_task_end_day: arbetsuppgift som slutar denna dag
   text_tip_task_begin_end_day: arbetsuppgift börjar och slutar denna dag
@@ -800,6 +890,7 @@ sv:
   text_tracker_no_workflow: Inget arbetsflöde definerat för denna ärendetyp
   text_unallowed_characters: Otillåtna tecken
   text_comma_separated: Flera värden tillåtna (kommaseparerade).
+  text_line_separated: Flera värden tillåtna (ett värde per rad).
   text_issues_ref_in_commit_messages: Referera och fixa ärenden i commit-meddelanden
   text_issue_added: "Ärende {{id}} har rapporterats (av {{author}})."
   text_issue_updated: "Ärende {{id}} har uppdaterats (av {{author}})."
@@ -832,17 +923,20 @@ sv:
   text_wiki_page_nullify_children: Behåll undersidor som rotsidor
   text_wiki_page_destroy_children: Ta bort alla underliggande sidor
   text_wiki_page_reassign_children: Flytta undersidor till denna föräldersida
+  text_own_membership_delete_confirmation: "Några av, eller alla, dina behörigheter kommer att tas bort och du kanske inte längre kommer kunna göra ändringar i det här projektet.\nVill du verkligen fortsätta?"
+  text_zoom_out: Zooma ut
+  text_zoom_in: Zooma in
   
   default_role_manager: Projektledare
-  default_role_developper: Utvecklare
+  default_role_developer: Utvecklare
   default_role_reporter: Rapportör
   default_tracker_bug: Bugg
   default_tracker_feature: Funktionalitet
   default_tracker_support: Support
   default_issue_status_new: Ny
-  default_issue_status_assigned: Tilldelad
+  default_issue_status_in_progress: Pågår
   default_issue_status_resolved: Löst
-  default_issue_status_feedback: Feedback
+  default_issue_status_feedback: Återkoppling
   default_issue_status_closed: Stängd
   default_issue_status_rejected: Avslagen
   default_doc_category_user: Användardokumentation
@@ -858,3 +952,4 @@ sv:
   enumeration_issue_priorities: Ärendeprioriteter
   enumeration_doc_categories: Dokumentkategorier
   enumeration_activities: Aktiviteter (tidsuppföljning)
+  enumeration_system_activity: Systemaktivitet

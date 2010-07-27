@@ -54,6 +54,9 @@
       over_x_years:
         one: "over 1 år"
         other: "over {{count}} år"
+      almost_x_years:
+        one:   "nesten 1 år"
+        other: "nesten {{count}} år"
   number:
     format:
       precision: 2
@@ -67,6 +70,18 @@
       format:
         delimiter: ""
         precision: 4
+    human:
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: "Byte"
+            other: "Bytes"
+          kb: "KB"
+          mb: "MB"
+          gb: "GB"
+          tb: "TB"
+
   activerecord:
     errors:
       template:
@@ -193,7 +208,6 @@
   field_homepage: Hjemmeside
   field_is_public: Offentlig
   field_parent: Underprosjekt til
-  field_is_in_chlog: Vises i endringslogg
   field_is_in_roadmap: Vises i veikart
   field_login: Brukernavn
   field_mail_notification: E-post-varsling
@@ -228,7 +242,7 @@
   field_spent_on: Dato
   field_identifier: Identifikasjon
   field_is_filter: Brukes som filter
-  field_issue_to_id: Relatert saker
+  field_issue_to: Relatert saker
   field_delay: Forsinkelse
   field_assignable: Saker kan tildeles denne rollen
   field_redirect_existing_links: Viderekoble eksisterende lenker
@@ -288,9 +302,9 @@
   label_project_new: Nytt prosjekt
   label_project_plural: Prosjekter
   label_x_projects:
-    zero:  no projects
-    one:   1 project
-    other: "{{count}} projects"
+    zero:  ingen prosjekter
+    one:   1 prosjekt
+    other: "{{count}} prosjekter"
   label_project_all: Alle prosjekter
   label_project_latest: Siste prosjekter
   label_issue: Sak
@@ -382,7 +396,6 @@
   label_news_latest: Siste nyheter
   label_news_view_all: Vis alle nyheter
   label_news_added: Nyhet lagt til
-  label_change_log: Endringslogg
   label_settings: Innstillinger
   label_overview: Oversikt
   label_version: Versjon
@@ -397,18 +410,18 @@
   label_closed_issues: lukket
   label_closed_issues_plural: lukkede
   label_x_open_issues_abbr_on_total:
-    zero:  0 open / {{total}}
-    one:   1 open / {{total}}
-    other: "{{count}} open / {{total}}"
+    zero:  0 åpne / {{total}}
+    one:   1 åpen / {{total}}
+    other: "{{count}} åpne / {{total}}"
   label_x_open_issues_abbr:
-    zero:  0 open
-    one:   1 open
-    other: "{{count}} open"
+    zero:  0 åpne
+    one:   1 åpen
+    other: "{{count}} åpne"
   label_x_closed_issues_abbr:
-    zero:  0 closed
-    one:   1 closed
-    other: "{{count}} closed"
-  label_total: Total
+    zero:  0 lukka
+    one:   1 lukka
+    other: "{{count}} lukka"
+  label_total: Totalt
   label_permissions: Godkjenninger
   label_current_status: Nåværende status
   label_new_statuses_allowed: Tillatte nye statuser
@@ -431,9 +444,9 @@
   label_comment: Kommentar
   label_comment_plural: Kommentarer
   label_x_comments:
-    zero: no comments
-    one: 1 comment
-    other: "{{count}} comments"
+    zero: no kommentarer
+    one: 1 kommentar
+    other: "{{count}} kommentarer"
   label_comment_add: Legg til kommentar
   label_comment_added: Kommentar lagt til
   label_comment_delete: Slett kommentar
@@ -639,9 +652,6 @@
   text_subprojects_destroy_warning: "Underprojekt(ene): {{value}} vil også bli slettet."
   text_workflow_edit: Velg en rolle og en sakstype for å endre arbeidsflyten
   text_are_you_sure: Er du sikker ?
-  text_journal_changed: "endret fra {{old}} til {{new}}"
-  text_journal_set_to: "satt til {{value}}"
-  text_journal_deleted: slettet
   text_tip_task_begin_day: oppgaven starter denne dagen
   text_tip_task_end_day: oppgaven avsluttes denne dagen
   text_tip_task_begin_end_day: oppgaven starter og avsluttes denne dagen
@@ -675,13 +685,13 @@
   text_user_wrote: "{{value}} skrev:"
   
   default_role_manager: Leder
-  default_role_developper: Utvikler
+  default_role_developer: Utvikler
   default_role_reporter: Rapportør
   default_tracker_bug: Feil
   default_tracker_feature: Funksjon
   default_tracker_support: Support
   default_issue_status_new: Ny
-  default_issue_status_assigned: Tildelt
+  default_issue_status_in_progress: In Progress
   default_issue_status_resolved: Avklart
   default_issue_status_feedback: Tilbakemelding
   default_issue_status_closed: Lukket
@@ -699,70 +709,70 @@
   enumeration_issue_priorities: Sakssprioriteringer
   enumeration_doc_categories: Dokument-kategorier
   enumeration_activities: Aktiviteter (tidssporing)
-  text_enumeration_category_reassign_to: 'Reassign them to this value:'
-  text_enumeration_destroy_question: "{{count}} objects are assigned to this value."
-  label_incoming_emails: Incoming emails
-  label_generate_key: Generate a key
-  setting_mail_handler_api_enabled: Enable WS for incoming emails
-  setting_mail_handler_api_key: API key
-  text_email_delivery_not_configured: "Email delivery is not configured, and notifications are disabled.\nConfigure your SMTP server in config/email.yml and restart the application to enable them."
-  field_parent_title: Parent page
-  label_issue_watchers: Watchers
-  setting_commit_logs_encoding: Commit messages encoding
-  button_quote: Quote
-  setting_sequential_project_identifiers: Generate sequential project identifiers
-  notice_unable_delete_version: Unable to delete version
-  label_renamed: renamed
-  label_copied: copied
-  setting_plain_text_mail: plain text only (no HTML)
-  permission_view_files: View files
-  permission_edit_issues: Edit issues
-  permission_edit_own_time_entries: Edit own time logs
-  permission_manage_public_queries: Manage public queries
-  permission_add_issues: Add issues
-  permission_log_time: Log spent time
-  permission_view_changesets: View changesets
-  permission_view_time_entries: View spent time
-  permission_manage_versions: Manage versions
-  permission_manage_wiki: Manage wiki
-  permission_manage_categories: Manage issue categories
-  permission_protect_wiki_pages: Protect wiki pages
-  permission_comment_news: Comment news
-  permission_delete_messages: Delete messages
-  permission_select_project_modules: Select project modules
-  permission_manage_documents: Manage documents
-  permission_edit_wiki_pages: Edit wiki pages
-  permission_add_issue_watchers: Add watchers
-  permission_view_gantt: View gantt chart
-  permission_move_issues: Move issues
-  permission_manage_issue_relations: Manage issue relations
-  permission_delete_wiki_pages: Delete wiki pages
-  permission_manage_boards: Manage boards
-  permission_delete_wiki_pages_attachments: Delete attachments
-  permission_view_wiki_edits: View wiki history
-  permission_add_messages: Post messages
-  permission_view_messages: View messages
-  permission_manage_files: Manage files
-  permission_edit_issue_notes: Edit notes
-  permission_manage_news: Manage news
-  permission_view_calendar: View calendrier
-  permission_manage_members: Manage members
-  permission_edit_messages: Edit messages
-  permission_delete_issues: Delete issues
-  permission_view_issue_watchers: View watchers list
-  permission_manage_repository: Manage repository
-  permission_commit_access: Commit access
-  permission_browse_repository: Browse repository
-  permission_view_documents: View documents
-  permission_edit_project: Edit project
-  permission_add_issue_notes: Add notes
-  permission_save_queries: Save queries
-  permission_view_wiki_pages: View wiki
-  permission_rename_wiki_pages: Rename wiki pages
-  permission_edit_time_entries: Edit time logs
-  permission_edit_own_issue_notes: Edit own notes
-  setting_gravatar_enabled: Use Gravatar user icons
-  label_example: Example
+  text_enumeration_category_reassign_to: 'Endre dem til denne verdien:'
+  text_enumeration_destroy_question: "{{count}} objekter er endret til denne verdien."
+  label_incoming_emails: Innkommende e-post
+  label_generate_key: Generer en nøkkel
+  setting_mail_handler_api_enabled: Skru på WS for innkommende e-post
+  setting_mail_handler_api_key: API-nøkkel
+  text_email_delivery_not_configured: "Levering av e-post er ikke satt opp, og varsler er skrudd av.\nStill inn din SMTP-tjener i config/email.yml og start programmet på nytt for å skru det på."
+  field_parent_title: Foreldreside
+  label_issue_watchers: Overvåkere
+  setting_commit_logs_encoding: Tegnkoding for innsendingsmeldinger
+  button_quote: Sitat
+  setting_sequential_project_identifiers: Generer sekvensielle prosjekt-IDer
+  notice_unable_delete_version: Kan ikke slette versjonen
+  label_renamed: gitt nytt navn
+  label_copied: kopiert
+  setting_plain_text_mail: kun ren tekst (ikke HTML)
+  permission_view_files: Vise filer
+  permission_edit_issues: Redigere saker
+  permission_edit_own_time_entries: Redigere egne timelister
+  permission_manage_public_queries: Behandle delte søk
+  permission_add_issues: Legge inn saker
+  permission_log_time: Loggføre timer
+  permission_view_changesets: Vise endringssett
+  permission_view_time_entries: Vise brukte timer
+  permission_manage_versions: Behandle versjoner
+  permission_manage_wiki: Behandle wiki
+  permission_manage_categories: Behandle kategorier for saker
+  permission_protect_wiki_pages: Beskytte wiki-sider
+  permission_comment_news: Kommentere nyheter
+  permission_delete_messages: Slette meldinger
+  permission_select_project_modules: Velge prosjekt-moduler
+  permission_manage_documents: Behandle dokumenter
+  permission_edit_wiki_pages: Redigere wiki-sider
+  permission_add_issue_watchers: Legge til overvåkere
+  permission_view_gantt: Vise gantt-diagram
+  permission_move_issues: Flytte saker
+  permission_manage_issue_relations: Behandle saksrelasjoner
+  permission_delete_wiki_pages: Slette wiki-sider
+  permission_manage_boards: Behandle forum
+  permission_delete_wiki_pages_attachments: Slette vedlegg
+  permission_view_wiki_edits: Vise wiki-historie
+  permission_add_messages: Sende meldinger
+  permission_view_messages: Vise meldinger
+  permission_manage_files: Behandle filer
+  permission_edit_issue_notes: Redigere notater
+  permission_manage_news: Behandle nyheter
+  permission_view_calendar: Vise kalender
+  permission_manage_members: Behandle medlemmer
+  permission_edit_messages: Redigere meldinger
+  permission_delete_issues: Slette saker
+  permission_view_issue_watchers: Vise liste over overvåkere
+  permission_manage_repository: Behandle depot
+  permission_commit_access: Tilgang til innsending
+  permission_browse_repository: Bla gjennom depot
+  permission_view_documents: Vise dokumenter
+  permission_edit_project: Redigere prosjekt
+  permission_add_issue_notes: Legge til notater
+  permission_save_queries: Lagre søk
+  permission_view_wiki_pages: Vise wiki
+  permission_rename_wiki_pages: Gi wiki-sider nytt navn
+  permission_edit_time_entries: Redigere timelister
+  permission_edit_own_issue_notes: Redigere egne notater
+  setting_gravatar_enabled: Bruk Gravatar-brukerikoner
+  label_example: Eksempel
   text_repository_usernames_mapping: "Select ou update the Redmine user mapped to each username found in the repository log.\nUsers with the same Redmine and repository username or email are automatically mapped."
   permission_edit_own_messages: Edit own messages
   permission_delete_own_messages: Delete own messages
@@ -803,3 +813,89 @@
   mail_body_wiki_content_updated: The '{{page}}' wiki page has been updated by {{author}}.
   permission_add_project: Create project
   setting_new_project_user_role_id: Role given to a non-admin user who creates a project
+  label_view_all_revisions: View all revisions
+  label_tag: Tag
+  label_branch: Branch
+  error_no_tracker_in_project: No tracker is associated to this project. Please check the Project settings.
+  error_no_default_issue_status: No default issue status is defined. Please check your configuration (Go to "Administration -> Issue statuses").
+  text_journal_changed: "{{label}} changed from {{old}} to {{new}}"
+  text_journal_set_to: "{{label}} set to {{value}}"
+  text_journal_deleted: "{{label}} deleted ({{old}})"
+  label_group_plural: Groups
+  label_group: Group
+  label_group_new: New group
+  label_time_entry_plural: Spent time
+  text_journal_added: "{{label}} {{value}} added"
+  field_active: Active
+  enumeration_system_activity: System Activity
+  permission_delete_issue_watchers: Delete watchers
+  version_status_closed: closed
+  version_status_locked: locked
+  version_status_open: open
+  error_can_not_reopen_issue_on_closed_version: An issue assigned to a closed version can not be reopened
+  label_user_anonymous: Anonymous
+  button_move_and_follow: Move and follow
+  setting_default_projects_modules: Default enabled modules for new projects
+  setting_gravatar_default: Default Gravatar image
+  field_sharing: Sharing
+  label_version_sharing_hierarchy: With project hierarchy
+  label_version_sharing_system: With all projects
+  label_version_sharing_descendants: With subprojects
+  label_version_sharing_tree: With project tree
+  label_version_sharing_none: Not shared
+  error_can_not_archive_project: This project can not be archived
+  button_duplicate: Duplicate
+  button_copy_and_follow: Copy and follow
+  label_copy_source: Source
+  setting_issue_done_ratio: Calculate the issue done ratio with
+  setting_issue_done_ratio_issue_status: Use the issue status
+  error_issue_done_ratios_not_updated: Issue done ratios not updated.
+  error_workflow_copy_target: Please select target tracker(s) and role(s)
+  setting_issue_done_ratio_issue_field: Use the issue field
+  label_copy_same_as_target: Same as target
+  label_copy_target: Target
+  notice_issue_done_ratios_updated: Issue done ratios updated.
+  error_workflow_copy_source: Please select a source tracker or role
+  label_update_issue_done_ratios: Update issue done ratios
+  setting_start_of_week: Start calendars on
+  permission_view_issues: View Issues
+  label_display_used_statuses_only: Only display statuses that are used by this tracker
+  label_revision_id: Revision {{value}}
+  label_api_access_key: API access key
+  label_api_access_key_created_on: API access key created {{value}} ago
+  label_feeds_access_key: RSS access key
+  notice_api_access_key_reseted: Your API access key was reset.
+  setting_rest_api_enabled: Enable REST web service
+  label_missing_api_access_key: Missing an API access key
+  label_missing_feeds_access_key: Missing a RSS access key
+  button_show: Show
+  text_line_separated: Multiple values allowed (one line for each value).
+  setting_mail_handler_body_delimiters: Truncate emails after one of these lines
+  permission_add_subprojects: Create subprojects
+  label_subproject_new: New subproject
+  text_own_membership_delete_confirmation: |-
+    You are about to remove some or all of your permissions and may no longer be able to edit this project after that.
+    Are you sure you want to continue?
+  label_close_versions: Close completed versions
+  label_board_sticky: Sticky
+  label_board_locked: Locked
+  permission_export_wiki_pages: Export wiki pages
+  setting_cache_formatted_text: Cache formatted text
+  permission_manage_project_activities: Manage project activities
+  error_unable_delete_issue_status: Unable to delete issue status
+  label_profile: Profile
+  permission_manage_subtasks: Manage subtasks
+  field_parent_issue: Parent task
+  label_subtask_plural: Subtasks
+  label_project_copy_notifications: Send email notifications during the project copy
+  error_can_not_delete_custom_field: Unable to delete custom field
+  error_unable_to_connect: Unable to connect ({{value}})
+  error_can_not_remove_role: This role is in use and can not be deleted.
+  error_can_not_delete_tracker: This tracker contains issues and can't be deleted.
+  field_principal: Principal
+  label_my_page_block: My page block
+  notice_failed_to_save_members: "Failed to save member(s): {{errors}}."
+  text_zoom_out: Zoom out
+  text_zoom_in: Zoom in
+  notice_unable_delete_time_entry: Unable to delete time log entry.
+  label_overall_spent_time: Overall spent time

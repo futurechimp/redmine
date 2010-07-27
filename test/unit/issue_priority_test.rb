@@ -17,7 +17,7 @@
 
 require File.dirname(__FILE__) + '/../test_helper'
 
-class IssuePriorityTest < Test::Unit::TestCase
+class IssuePriorityTest < ActiveSupport::TestCase
   fixtures :enumerations, :issues
 
   def test_should_be_an_enumeration
@@ -26,7 +26,7 @@ class IssuePriorityTest < Test::Unit::TestCase
   
   def test_objects_count
     # low priority
-    assert_equal 5, IssuePriority.find(4).objects_count
+    assert_equal 6, IssuePriority.find(4).objects_count
     # urgent
     assert_equal 0, IssuePriority.find(7).objects_count
   end

@@ -22,7 +22,7 @@ require 'members_controller'
 class MembersController; def rescue_action(e) raise e end; end
 
 
-class MembersControllerTest < Test::Unit::TestCase
+class MembersControllerTest < ActionController::TestCase
   fixtures :projects, :members, :member_roles, :roles, :users
   
   def setup
@@ -33,24 +33,9 @@ class MembersControllerTest < Test::Unit::TestCase
     @request.session[:user_id] = 2
   end
   
-  def test_members_routing
-    assert_routing(
-      {:method => :post, :path => 'projects/5234/members/new'},
-      :controller => 'members', :action => 'new', :id => '5234'
-    )
-  end
-  
   def test_create
     assert_difference 'Member.count' do
       post :new, :id => 1, :member => {:role_ids => [1], :user_id => 7}
-    end
-    assert_redirected_to '/projects/ecookbook/settings/members'
-    assert User.find(7).member_of?(Project.find(1))
-  end
-  
-  def test_create_by_user_login
-    assert_difference 'Member.count' do
-      post :new, :id => 1, :member => {:role_ids => [1], :user_login => 'someone'}
     end
     assert_redirected_to '/projects/ecookbook/settings/members'
     assert User.find(7).member_of?(Project.find(1))
@@ -62,6 +47,40 @@ class MembersControllerTest < Test::Unit::TestCase
     end
     assert_redirected_to '/projects/ecookbook/settings/members'
     assert User.find(7).member_of?(Project.find(1))
+  end
+
+  context "post :new in JS format" do
+    context "with successful saves" do
+      should "add membership for each user" do
+        post :new, :format => "js", :id => 1, :member => {:role_ids => [1], :user_ids => [7, 8, 9]}
+
+        assert User.find(7).member_of?(Project.find(1))
+        assert User.find(8).member_of?(Project.find(1))
+        assert User.find(9).member_of?(Project.find(1))
+      end
+      
+      should "replace the tab with RJS" do
+        post :new, :format => "js", :id => 1, :member => {:role_ids => [1], :user_ids => [7, 8, 9]}
+
+        assert_select_rjs :replace_html, 'tab-content-members'
+      end
+      
+    end
+
+    context "with a failed save" do
+      should "not replace the tab with RJS" do
+        post :new, :format => "js", :id => 1, :member => {:role_ids => [], :user_ids => [7, 8, 9]}
+
+        assert_select '#tab-content-members', 0
+      end
+      
+      should "open an error message" do
+        post :new, :format => "js", :id => 1, :member => {:role_ids => [], :user_ids => [7, 8, 9]}
+
+        assert @response.body.match(/alert/i), "Alert message not sent"
+      end
+    end
+
   end
   
   def test_edit
@@ -79,11 +98,12 @@ class MembersControllerTest < Test::Unit::TestCase
     assert !User.find(3).member_of?(Project.find(1))
   end
   
-  def test_autocomplete_for_member_login
-    get :autocomplete_for_member_login, :id => 1, :user => 'mis'
+  def test_autocomplete_for_member
+    get :autocomplete_for_member, :id => 1, :q => 'mis'
     assert_response :success
-    assert_template 'autocomplete_for_member_login'
+    assert_template 'autocomplete_for_member'
     
-    assert_tag :ul, :child => {:tag => 'li', :content => /miscuser8/}
+    assert_tag :label, :content => /User Misc/,
+                       :child => { :tag => 'input', :attributes => { :name => 'member[user_ids][]', :value => '8' } }
   end
 end

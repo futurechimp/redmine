@@ -1,5 +1,5 @@
-# redMine - project management software
-# Copyright (C) 2006-2007  Jean-Philippe Lang
+# Redmine - project management software
+# Copyright (C) 2006-2009  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
 
 require "digest/sha1"
 
-class User < ActiveRecord::Base
+class User < Principal
 
   # Account statuses
   STATUS_ANONYMOUS  = 0
@@ -33,13 +33,13 @@ class User < ActiveRecord::Base
     :username => '#{login}'
   }
 
-  has_many :memberships, :class_name => 'Member', :include => [ :project, :roles ], :conditions => "#{Project.table_name}.status=#{Project::STATUS_ACTIVE}", :order => "#{Project.table_name}.name"
-  has_many :members, :dependent => :delete_all
-  has_many :projects, :through => :memberships
+  has_and_belongs_to_many :groups, :after_add => Proc.new {|user, group| group.user_added(user)},
+                                   :after_remove => Proc.new {|user, group| group.user_removed(user)}
   has_many :issue_categories, :foreign_key => 'assigned_to_id', :dependent => :nullify
   has_many :changesets, :dependent => :nullify
   has_one :preference, :dependent => :destroy, :class_name => 'UserPreference'
   has_one :rss_token, :dependent => :destroy, :class_name => 'Token', :conditions => "action='feeds'"
+  has_one :api_token, :dependent => :destroy, :class_name => 'Token', :conditions => "action='api'"
   belongs_to :auth_source
   
   # Active non-anonymous users scope
@@ -50,10 +50,10 @@ class User < ActiveRecord::Base
   attr_accessor :password, :password_confirmation
   attr_accessor :last_before_login_on
   # Prevents unauthorized assignments
-  attr_protected :login, :admin, :password, :password_confirmation, :hashed_password
+  attr_protected :login, :admin, :password, :password_confirmation, :hashed_password, :group_ids
 	
   validates_presence_of :login, :firstname, :lastname, :mail, :if => Proc.new { |user| !user.is_a?(AnonymousUser) }
-  validates_uniqueness_of :login, :if => Proc.new { |user| !user.login.blank? }
+  validates_uniqueness_of :login, :if => Proc.new { |user| !user.login.blank? }, :case_sensitive => false
   validates_uniqueness_of :mail, :if => Proc.new { |user| !user.mail.blank? }, :case_sensitive => false
   # Login must contain lettres, numbers, underscores only
   validates_format_of :login, :with => /^[a-z0-9_\-@\.]*$/i
@@ -71,12 +71,16 @@ class User < ActiveRecord::Base
   
   def before_save
     # update hashed_password if password was set
-    self.hashed_password = User.hash_password(self.password) if self.password
+    self.hashed_password = User.hash_password(self.password) if self.password && self.auth_source_id.blank?
   end
   
   def reload(*args)
     @name = nil
     super
+  end
+  
+  def mail=(arg)
+    write_attribute(:mail, arg.to_s.strip)
   end
   
   def identity_url=(url)
@@ -96,7 +100,7 @@ class User < ActiveRecord::Base
   def self.try_to_login(login, password)
     # Make sure no one can sign in with an empty password
     return nil if password.to_s.empty?
-    user = find(:first, :conditions => ["login=?", login])
+    user = find_by_login(login)
     if user
       # user is already in local database
       return nil if !user.active?
@@ -111,12 +115,12 @@ class User < ActiveRecord::Base
       # user is not yet registered, try to authenticate with available sources
       attrs = AuthSource.authenticate(login, password)
       if attrs
-        user = new(*attrs)
+        user = new(attrs)
         user.login = login
         user.language = Setting.default_language
         if user.save
           user.reload
-          logger.info("User '#{user.login}' created from the LDAP") if logger
+          logger.info("User '#{user.login}' created from external auth source: #{user.auth_source.type} - #{user.auth_source.name}") if logger && user.auth_source
         end
       end
     end    
@@ -161,7 +165,17 @@ class User < ActiveRecord::Base
   end
 
   def check_password?(clear_password)
-    User.hash_password(clear_password) == self.hashed_password
+    if auth_source_id.present?
+      auth_source.authenticate(self.login, clear_password)
+    else
+      User.hash_password(clear_password) == self.hashed_password
+    end
+  end
+
+  # Does the backend storage allow this user to change their password?
+  def change_password_allowed?
+    return true if auth_source_id.blank?
+    return auth_source.allow_password_changes?
   end
 
   # Generate and set a random password.  Useful for automated user creation
@@ -193,6 +207,12 @@ class User < ActiveRecord::Base
     token = self.rss_token || Token.create(:user => self, :action => 'feeds')
     token.value
   end
+
+  # Return user's API key (a 40 chars long string), used to access the API
+  def api_key
+    token = self.api_token || self.create_api_token(:action => 'api')
+    token.value
+  end
   
   # Return an array of project ids for which the user has explicitly turned mail notifications on
   def notified_projects_ids
@@ -205,9 +225,26 @@ class User < ActiveRecord::Base
     @notified_projects_ids = nil
     notified_projects_ids
   end
-  
+
+  # Find a user account by matching the exact login and then a case-insensitive
+  # version.  Exact matches will be given priority.
+  def self.find_by_login(login)
+    # force string comparison to be case sensitive on MySQL
+    type_cast = (ActiveRecord::Base.connection.adapter_name == 'MySQL') ? 'BINARY' : ''
+    
+    # First look for an exact match
+    user = first(:conditions => ["#{type_cast} login = ?", login])
+    # Fail over to case-insensitive if none was found
+    user ||= first(:conditions => ["#{type_cast} LOWER(login) = ?", login.to_s.downcase])
+  end
+
   def self.find_by_rss_key(key)
     token = Token.find_by_value(key)
+    token && token.user.active? ? token.user : nil
+  end
+  
+  def self.find_by_api_key(key)
+    token = Token.find_by_action_and_value('api', key)
     token && token.user.active? ? token.user : nil
   end
   
@@ -215,14 +252,18 @@ class User < ActiveRecord::Base
   def self.find_by_mail(mail)
     find(:first, :conditions => ["LOWER(mail) = ?", mail.to_s.downcase])
   end
-
-  # Sort users by their display names
-  def <=>(user)
-    self.to_s.downcase <=> user.to_s.downcase
-  end
   
   def to_s
     name
+  end
+  
+  # Returns the current day according to user's time zone
+  def today
+    if time_zone.nil?
+      Date.today
+    else
+      Time.now.in_time_zone(time_zone).to_date
+    end
   end
   
   def logged?
@@ -317,7 +358,7 @@ class User < ActiveRecord::Base
   end
   
   private
-  
+    
   # Return password digest
   def self.hash_password(clear_password)
     Digest::SHA1.hexdigest(clear_password || "")
@@ -338,7 +379,7 @@ class AnonymousUser < User
   # Overrides a few properties
   def logged?; false end
   def admin; false end
-  def name; 'Anonymous' end
+  def name(*args); I18n.t(:label_user_anonymous) end
   def mail; nil end
   def time_zone; nil end
   def rss_key; nil end

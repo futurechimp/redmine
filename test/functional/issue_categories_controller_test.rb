@@ -21,7 +21,7 @@ require 'issue_categories_controller'
 # Re-raise errors caught by the controller.
 class IssueCategoriesController; def rescue_action(e) raise e end; end
 
-class IssueCategoriesControllerTest < Test::Unit::TestCase
+class IssueCategoriesControllerTest < ActionController::TestCase
   fixtures :projects, :users, :members, :member_roles, :roles, :enabled_modules, :issue_categories
   
   def setup
@@ -30,6 +30,24 @@ class IssueCategoriesControllerTest < Test::Unit::TestCase
     @response   = ActionController::TestResponse.new
     User.current = nil
     @request.session[:user_id] = 2
+  end
+  
+  def test_get_new
+    @request.session[:user_id] = 2 # manager
+    get :new, :project_id => '1'
+    assert_response :success
+    assert_template 'new'
+  end
+  
+  def test_post_new
+    @request.session[:user_id] = 2 # manager
+    assert_difference 'IssueCategory.count' do
+      post :new, :project_id => '1', :category => {:name => 'New category'}
+    end
+    assert_redirected_to '/projects/ecookbook/settings/categories'
+    category = IssueCategory.find_by_name('New category')
+    assert_not_nil category
+    assert_equal 1, category.project_id
   end
   
   def test_post_edit

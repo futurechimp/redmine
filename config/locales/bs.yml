@@ -59,6 +59,9 @@ bs:
       over_x_years:
         one:   "preko 1 godine"
         other: "preko {{count}} godina"
+      almost_x_years:
+        one:   "almost 1 year"
+        other: "almost {{count}} years"
 
 
   number:
@@ -83,9 +86,16 @@ bs:
       format:
         delimiter: ""
         precision: 1
-
-
-
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: "Byte"
+            other: "Bytes"
+          kb: "KB"
+          mb: "MB"
+          gb: "GB"
+          tb: "TB"
         
 # Used in array.to_sentence.
   support:
@@ -219,7 +229,6 @@ bs:
   field_homepage: Naslovna strana
   field_is_public: Javni
   field_parent: Podprojekt od
-  field_is_in_chlog: Aktivnosti prikazane u logu promjena
   field_is_in_roadmap: Aktivnosti prikazane u planu realizacije
   field_login: Prijava
   field_mail_notification: Email notifikacije
@@ -254,7 +263,7 @@ bs:
   field_spent_on: Datum
   field_identifier: Identifikator
   field_is_filter: Korišteno kao filter
-  field_issue_to_id: Povezana aktivnost
+  field_issue_to: Povezana aktivnost
   field_delay: Odgađanje
   field_assignable: Aktivnosti dodijeljene ovoj ulozi
   field_redirect_existing_links: Izvrši redirekciju postojećih linkova
@@ -476,7 +485,6 @@ bs:
   label_news_latest: Posljednje novosti
   label_news_view_all: Pogledaj sve novosti
   label_news_added: Novosti su dodane
-  label_change_log: Log promjena
   label_settings: Postavke
   label_overview: Pregled
   label_version: Verzija
@@ -740,9 +748,6 @@ bs:
   text_subprojects_destroy_warning: "Podprojekt(i): {{value}} će takođe biti izbrisani."
   text_workflow_edit: Odaberite ulogu i područje aktivnosti za ispravku toka promjena na aktivnosti
   text_are_you_sure: Da li ste sigurni ?
-  text_journal_changed: "promjena iz {{old}} u {{new}}"
-  text_journal_set_to: "postavi na {{value}}"
-  text_journal_deleted: izbrisano
   text_tip_task_begin_day: zadatak počinje danas
   text_tip_task_end_day: zadatak završava danas
   text_tip_task_begin_end_day: zadatak započinje i završava danas
@@ -783,13 +788,13 @@ bs:
   text_custom_field_possible_values_info: 'Jedna linija za svaku vrijednost'
   
   default_role_manager: Menadžer
-  default_role_developper: Programer
+  default_role_developer: Programer
   default_role_reporter: Reporter
   default_tracker_bug: Greška
   default_tracker_feature: Nova funkcija
   default_tracker_support: Podrška
   default_issue_status_new: Novi
-  default_issue_status_assigned: Dodjeljen
+  default_issue_status_in_progress: In Progress
   default_issue_status_resolved: Riješen
   default_issue_status_feedback: Čeka se povratna informacija
   default_issue_status_closed: Zatvoren
@@ -831,3 +836,89 @@ bs:
   mail_body_wiki_content_updated: The '{{page}}' wiki page has been updated by {{author}}.
   permission_add_project: Create project
   setting_new_project_user_role_id: Role given to a non-admin user who creates a project
+  label_view_all_revisions: View all revisions
+  label_tag: Tag
+  label_branch: Branch
+  error_no_tracker_in_project: No tracker is associated to this project. Please check the Project settings.
+  error_no_default_issue_status: No default issue status is defined. Please check your configuration (Go to "Administration -> Issue statuses").
+  text_journal_changed: "{{label}} changed from {{old}} to {{new}}"
+  text_journal_set_to: "{{label}} set to {{value}}"
+  text_journal_deleted: "{{label}} deleted ({{old}})"
+  label_group_plural: Groups
+  label_group: Group
+  label_group_new: New group
+  label_time_entry_plural: Spent time
+  text_journal_added: "{{label}} {{value}} added"
+  field_active: Active
+  enumeration_system_activity: System Activity
+  permission_delete_issue_watchers: Delete watchers
+  version_status_closed: closed
+  version_status_locked: locked
+  version_status_open: open
+  error_can_not_reopen_issue_on_closed_version: An issue assigned to a closed version can not be reopened
+  label_user_anonymous: Anonymous
+  button_move_and_follow: Move and follow
+  setting_default_projects_modules: Default enabled modules for new projects
+  setting_gravatar_default: Default Gravatar image
+  field_sharing: Sharing
+  label_version_sharing_hierarchy: With project hierarchy
+  label_version_sharing_system: With all projects
+  label_version_sharing_descendants: With subprojects
+  label_version_sharing_tree: With project tree
+  label_version_sharing_none: Not shared
+  error_can_not_archive_project: This project can not be archived
+  button_duplicate: Duplicate
+  button_copy_and_follow: Copy and follow
+  label_copy_source: Source
+  setting_issue_done_ratio: Calculate the issue done ratio with
+  setting_issue_done_ratio_issue_status: Use the issue status
+  error_issue_done_ratios_not_updated: Issue done ratios not updated.
+  error_workflow_copy_target: Please select target tracker(s) and role(s)
+  setting_issue_done_ratio_issue_field: Use the issue field
+  label_copy_same_as_target: Same as target
+  label_copy_target: Target
+  notice_issue_done_ratios_updated: Issue done ratios updated.
+  error_workflow_copy_source: Please select a source tracker or role
+  label_update_issue_done_ratios: Update issue done ratios
+  setting_start_of_week: Start calendars on
+  permission_view_issues: View Issues
+  label_display_used_statuses_only: Only display statuses that are used by this tracker
+  label_revision_id: Revision {{value}}
+  label_api_access_key: API access key
+  label_api_access_key_created_on: API access key created {{value}} ago
+  label_feeds_access_key: RSS access key
+  notice_api_access_key_reseted: Your API access key was reset.
+  setting_rest_api_enabled: Enable REST web service
+  label_missing_api_access_key: Missing an API access key
+  label_missing_feeds_access_key: Missing a RSS access key
+  button_show: Show
+  text_line_separated: Multiple values allowed (one line for each value).
+  setting_mail_handler_body_delimiters: Truncate emails after one of these lines
+  permission_add_subprojects: Create subprojects
+  label_subproject_new: New subproject
+  text_own_membership_delete_confirmation: |-
+    You are about to remove some or all of your permissions and may no longer be able to edit this project after that.
+    Are you sure you want to continue?
+  label_close_versions: Close completed versions
+  label_board_sticky: Sticky
+  label_board_locked: Locked
+  permission_export_wiki_pages: Export wiki pages
+  setting_cache_formatted_text: Cache formatted text
+  permission_manage_project_activities: Manage project activities
+  error_unable_delete_issue_status: Unable to delete issue status
+  label_profile: Profile
+  permission_manage_subtasks: Manage subtasks
+  field_parent_issue: Parent task
+  label_subtask_plural: Subtasks
+  label_project_copy_notifications: Send email notifications during the project copy
+  error_can_not_delete_custom_field: Unable to delete custom field
+  error_unable_to_connect: Unable to connect ({{value}})
+  error_can_not_remove_role: This role is in use and can not be deleted.
+  error_can_not_delete_tracker: This tracker contains issues and can't be deleted.
+  field_principal: Principal
+  label_my_page_block: My page block
+  notice_failed_to_save_members: "Failed to save member(s): {{errors}}."
+  text_zoom_out: Zoom out
+  text_zoom_in: Zoom in
+  notice_unable_delete_time_entry: Unable to delete time log entry.
+  label_overall_spent_time: Overall spent time

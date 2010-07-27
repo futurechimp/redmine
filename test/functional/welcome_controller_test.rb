@@ -21,7 +21,7 @@ require 'welcome_controller'
 # Re-raise errors caught by the controller.
 class WelcomeController; def rescue_action(e) raise e end; end
 
-class WelcomeControllerTest < Test::Unit::TestCase
+class WelcomeControllerTest < ActionController::TestCase
   fixtures :projects, :news
   
   def setup
@@ -65,6 +65,6 @@ class WelcomeControllerTest < Test::Unit::TestCase
     get :robots
     assert_response :success
     assert_equal 'text/plain', @response.content_type
-    assert @response.body.match(%r{^Disallow: /projects/ecookbook/issues$})
+    assert @response.body.match(%r{^Disallow: /projects/ecookbook/issues\r?$})
   end
 end

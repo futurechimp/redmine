@@ -17,24 +17,21 @@
 
 require File.dirname(__FILE__) + '/../test_helper'
 
-class RepositorySubversionTest < Test::Unit::TestCase
-  fixtures :projects
-  
-  # No '..' in the repository path for svn
-  REPOSITORY_PATH = RAILS_ROOT.gsub(%r{config\/\.\.}, '') + '/tmp/test/subversion_repository'
+class RepositorySubversionTest < ActiveSupport::TestCase
+  fixtures :projects, :repositories
   
   def setup
     @project = Project.find(1)
-    assert @repository = Repository::Subversion.create(:project => @project, :url => "file:///#{REPOSITORY_PATH}")
+    assert @repository = Repository::Subversion.create(:project => @project, :url => "file:///#{self.class.repository_path('subversion')}")
   end
   
-  if File.directory?(REPOSITORY_PATH)  
+  if repository_configured?('subversion')
     def test_fetch_changesets_from_scratch
       @repository.fetch_changesets
       @repository.reload
       
-      assert_equal 8, @repository.changesets.count
-      assert_equal 16, @repository.changes.count
+      assert_equal 11, @repository.changesets.count
+      assert_equal 20, @repository.changes.count
       assert_equal 'Initial import.', @repository.changesets.find_by_revision('1').comments
     end
     
@@ -46,14 +43,50 @@ class RepositorySubversionTest < Test::Unit::TestCase
       assert_equal 5, @repository.changesets.count
       
       @repository.fetch_changesets
-      assert_equal 8, @repository.changesets.count
+      assert_equal 11, @repository.changesets.count
     end
     
-    def test_changesets_for_path_with_limit
+    def test_latest_changesets
       @repository.fetch_changesets
-      changesets = @repository.changesets_for_path('', :limit => 2)
+      
+      # with limit
+      changesets = @repository.latest_changesets('', nil, 2)
       assert_equal 2, changesets.size
-      assert_equal @repository.changesets_for_path('').slice(0,2), changesets
+      assert_equal @repository.latest_changesets('', nil).slice(0,2), changesets
+      
+      # with path
+      changesets = @repository.latest_changesets('subversion_test/folder', nil)
+      assert_equal ["10", "9", "7", "6", "5", "2"], changesets.collect(&:revision)
+      
+      # with path and revision
+      changesets = @repository.latest_changesets('subversion_test/folder', 8)
+      assert_equal ["7", "6", "5", "2"], changesets.collect(&:revision)
+    end
+
+    def test_directory_listing_with_square_brackets_in_path
+      @repository.fetch_changesets
+      @repository.reload
+      
+      entries = @repository.entries('subversion_test/[folder_with_brackets]')
+      assert_not_nil entries, 'Expect to find entries in folder_with_brackets'
+      assert_equal 1, entries.size, 'Expect one entry in folder_with_brackets'
+      assert_equal 'README.txt', entries.first.name
+    end
+
+    def test_directory_listing_with_square_brackets_in_base
+      @project = Project.find(1)
+      @repository = Repository::Subversion.create(:project => @project, :url => "file:///#{self.class.repository_path('subversion')}/subversion_test/[folder_with_brackets]")
+
+      @repository.fetch_changesets
+      @repository.reload
+
+      assert_equal 1, @repository.changesets.count, 'Expected to see 1 revision'
+      assert_equal 2, @repository.changes.count, 'Expected to see 2 changes, dir add and file add'
+
+      entries = @repository.entries('')
+      assert_not_nil entries, 'Expect to find entries'
+      assert_equal 1, entries.size, 'Expect a single entry'
+      assert_equal 'README.txt', entries.first.name
     end
   else
     puts "Subversion test repository NOT FOUND. Skipping unit tests !!!"

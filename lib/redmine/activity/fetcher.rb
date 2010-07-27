@@ -38,7 +38,7 @@ module Redmine
         return @event_types unless @event_types.nil?
         
         @event_types = Redmine::Activity.available_event_types
-        @event_types = @event_types.select {|o| @user.allowed_to?("view_#{o}".to_sym, @project)} if @project
+        @event_types = @event_types.select {|o| @project.self_and_descendants.detect {|p| @user.allowed_to?("view_#{o}".to_sym, p)}} if @project
         @event_types
       end
       
@@ -66,6 +66,7 @@ module Redmine
       end
       
       # Returns an array of events for the given date range
+      # sorted in reverse chronological order
       def events(from = nil, to = nil, options={})
         e = []
         @options[:limit] = options[:limit]
@@ -76,8 +77,9 @@ module Redmine
           end
         end
         
+        e.sort! {|a,b| b.event_datetime <=> a.event_datetime}
+        
         if options[:limit]
-          e.sort! {|a,b| b.event_date <=> a.event_date}
           e = e.slice(0, options[:limit])
         end
         e

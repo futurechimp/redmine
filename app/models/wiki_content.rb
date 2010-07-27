@@ -25,9 +25,24 @@ class WikiContent < ActiveRecord::Base
   validates_length_of :comments, :maximum => 255, :allow_nil => true
   
   acts_as_versioned
+  
+  def visible?(user=User.current)
+    page.visible?(user)
+  end
     
   def project
     page.project
+  end
+  
+  def attachments
+    page.nil? ? [] : page.attachments
+  end
+  
+  # Returns the mail adresses of users that should be notified
+  def recipients
+    notified = project.notified_users
+    notified.reject! {|user| !visible?(user)}
+    notified.collect(&:mail)
   end
   
   class Version

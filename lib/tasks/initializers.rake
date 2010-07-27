@@ -17,8 +17,18 @@ file 'config/initializers/session_store.rb' do
 # you'll be exposed to dictionary attacks.
 ActionController::Base.session = {
   :session_key => '_redmine_session',
+  #
+  # Uncomment and edit the :session_path below if are hosting your Redmine
+  # at a suburi and don't want the top level path to access the cookies
+  #
+  # See: http://www.redmine.org/issues/3968
+  #
+  # :session_path => '/url_path_to/your/redmine/',
   :secret => '#{secret}'
 }
 EOF
   end
 end
+
+desc 'Generates a configuration file for cookie store sessions.'
+task :generate_session_store => ['config/initializers/session_store.rb']

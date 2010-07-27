@@ -36,6 +36,7 @@ function removeBlock(block) {
 
 <div class="contextual">
 <% form_tag({:action => "add_block"}, :id => "block-form") do %>
+<%= label_tag('block-select', l(:label_my_page_block)) %>
 <%= select_tag 'block', "<option></option>" + options_for_select(@block_options), :id => "block-select" %>
 <%= link_to_remote l(:button_add),
            {:url => { :action => "add_block" },
@@ -46,8 +47,7 @@ function removeBlock(block) {
            }, :class => 'icon icon-add'
              %>
 <% end %>
-<%= link_to l(:button_save), {:action => 'page_layout_save'}, :class => 'icon icon-save' %>
-<%= link_to l(:button_cancel), {:action => 'page'}, :class => 'icon icon-cancel' %>
+<%= link_to l(:button_back), {:action => 'page'}, :class => 'icon icon-cancel' %>
 </div>
 
 <h2><%=l(:label_my_page)%></h2>
@@ -105,3 +105,4 @@ function removeBlock(block) {
        %>
       
 <%= javascript_tag "updateSelect()" %>
+<% html_title(l(:label_my_page)) -%>

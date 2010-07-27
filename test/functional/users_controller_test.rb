@@ -21,7 +21,7 @@ require 'users_controller'
 # Re-raise errors caught by the controller.
 class UsersController; def rescue_action(e) raise e end; end
 
-class UsersControllerTest < Test::Unit::TestCase
+class UsersControllerTest < ActionController::TestCase
   include Redmine::I18n
   
   fixtures :users, :projects, :members, :member_roles, :roles
@@ -34,79 +34,69 @@ class UsersControllerTest < Test::Unit::TestCase
     @request.session[:user_id] = 1 # admin
   end
   
-  def test_index_routing
-    #TODO: unify with list
-    assert_generates(
-      '/users',
-      :controller => 'users', :action => 'index'
-    )
-  end
-  
   def test_index
     get :index
     assert_response :success
-    assert_template 'list'
-  end
-  
-  def test_list_routing
-    #TODO: rename action to index
-    assert_routing(
-      {:method => :get, :path => '/users'},
-      :controller => 'users', :action => 'list'
-    )
+    assert_template 'index'
   end
 
-  def test_list
-    get :list
+  def test_index
+    get :index
     assert_response :success
-    assert_template 'list'
+    assert_template 'index'
     assert_not_nil assigns(:users)
     # active users only
     assert_nil assigns(:users).detect {|u| !u.active?}
   end
   
-  def test_list_with_name_filter
-    get :list, :name => 'john'
+  def test_index_with_name_filter
+    get :index, :name => 'john'
     assert_response :success
-    assert_template 'list'
+    assert_template 'index'
     users = assigns(:users)
     assert_not_nil users
     assert_equal 1, users.size
     assert_equal 'John', users.first.firstname
   end
+  
+  def test_show
+    @request.session[:user_id] = nil
+    get :show, :id => 2
+    assert_response :success
+    assert_template 'show'
+    assert_not_nil assigns(:user)
+  end
 
-  def test_add_routing
-    assert_routing(
-      {:method => :get, :path => '/users/new'},
-      :controller => 'users', :action => 'add'
-    )
-    assert_recognizes(
-    #TODO: remove this and replace with POST to collection, need to modify form
-      {:controller => 'users', :action => 'add'},
-      {:method => :post, :path => '/users/new'}
-    )
-    assert_recognizes(
-      {:controller => 'users', :action => 'add'},
-      {:method => :post, :path => '/users'}
-    )
+  def test_show_should_not_fail_when_custom_values_are_nil
+    user = User.find(2)
+
+    # Create a custom field to illustrate the issue
+    custom_field = CustomField.create!(:name => 'Testing', :field_format => 'text')
+    custom_value = user.custom_values.build(:custom_field => custom_field).save!
+
+    get :show, :id => 2
+    assert_response :success
+  end
+
+  def test_show_inactive
+    @request.session[:user_id] = nil
+    get :show, :id => 5
+    assert_response 404
   end
   
-  def test_edit_routing
-    assert_routing(
-      {:method => :get, :path => '/users/444/edit'},
-      :controller => 'users', :action => 'edit', :id => '444'
-    )
-    assert_routing(
-      {:method => :get, :path => '/users/222/edit/membership'},
-      :controller => 'users', :action => 'edit', :id => '222', :tab => 'membership'
-    )
-    assert_recognizes(
-    #TODO: use PUT on user_path, modify form
-      {:controller => 'users', :action => 'edit', :id => '444'},
-      {:method => :post, :path => '/users/444/edit'}
-    )
+  def test_show_should_not_reveal_users_with_no_visible_activity_or_project
+    @request.session[:user_id] = nil
+    get :show, :id => 9
+    assert_response 404
   end
   
+  def test_show_inactive_by_admin
+    @request.session[:user_id] = 1
+    get :show, :id => 5
+    assert_response 200
+    assert_not_nil assigns(:user)
+  end
+
   def test_edit
     ActionMailer::Base.deliveries.clear
     post :edit, :id => 2, :user => {:firstname => 'Changed'}
@@ -144,33 +134,11 @@ class UsersControllerTest < Test::Unit::TestCase
     assert mail.body.include?('newpass')
   end
   
-  def test_add_membership_routing
-    assert_routing(
-      {:method => :post, :path => '/users/123/memberships'},
-      :controller => 'users', :action => 'edit_membership', :id => '123'
-    )
-  end
-  
-  def test_edit_membership_routing
-    assert_routing(
-      {:method => :post, :path => '/users/123/memberships/55'},
-      :controller => 'users', :action => 'edit_membership', :id => '123', :membership_id => '55'
-    )
-  end
-  
   def test_edit_membership
     post :edit_membership, :id => 2, :membership_id => 1,
                            :membership => { :role_ids => [2]}
     assert_redirected_to :action => 'edit', :id => '2', :tab => 'memberships'
     assert_equal [2], Member.find(1).role_ids
-  end
-  
-  def test_destroy_membership
-    assert_routing(
-    #TODO: use DELETE method on user_membership_path, modify form
-      {:method => :post, :path => '/users/567/memberships/12/destroy'},
-      :controller => 'users', :action => 'destroy_membership', :id => '567', :membership_id => '12'
-    )
   end
   
   def test_destroy_membership

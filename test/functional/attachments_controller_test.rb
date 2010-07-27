@@ -22,7 +22,7 @@ require 'attachments_controller'
 class AttachmentsController; def rescue_action(e) raise e end; end
 
 
-class AttachmentsControllerTest < Test::Unit::TestCase
+class AttachmentsControllerTest < ActionController::TestCase
   fixtures :users, :projects, :roles, :members, :member_roles, :enabled_modules, :issues, :trackers, :attachments,
            :versions, :wiki_pages, :wikis, :documents
   
@@ -32,21 +32,6 @@ class AttachmentsControllerTest < Test::Unit::TestCase
     @response   = ActionController::TestResponse.new
     Attachment.storage_path = "#{RAILS_ROOT}/test/fixtures/files"
     User.current = nil
-  end
-  
-  def test_routing
-    assert_routing('/attachments/1', :controller => 'attachments', :action => 'show', :id => '1')
-    assert_routing('/attachments/1/filename.ext', :controller => 'attachments', :action => 'show', :id => '1', :filename => 'filename.ext')
-    assert_routing('/attachments/download/1', :controller => 'attachments', :action => 'download', :id => '1')
-    assert_routing('/attachments/download/1/filename.ext', :controller => 'attachments', :action => 'download', :id => '1', :filename => 'filename.ext')
-  end
-  
-  def test_recognizes
-    assert_recognizes({:controller => 'attachments', :action => 'show', :id => '1'}, '/attachments/1')
-    assert_recognizes({:controller => 'attachments', :action => 'show', :id => '1'}, '/attachments/show/1')
-    assert_recognizes({:controller => 'attachments', :action => 'show', :id => '1', :filename => 'filename.ext'}, '/attachments/1/filename.ext')
-    assert_recognizes({:controller => 'attachments', :action => 'download', :id => '1'}, '/attachments/download/1')
-    assert_recognizes({:controller => 'attachments', :action => 'download', :id => '1', :filename => 'filename.ext'},'/attachments/download/1/filename.ext')
   end
   
   def test_show_diff
@@ -82,6 +67,14 @@ class AttachmentsControllerTest < Test::Unit::TestCase
     get :download, :id => 4
     assert_response :success
     assert_equal 'application/x-ruby', @response.content_type
+  end
+  
+  def test_download_should_assign_content_type_if_blank
+    Attachment.find(4).update_attribute(:content_type, '')
+    
+    get :download, :id => 4
+    assert_response :success
+    assert_equal 'text/x-ruby', @response.content_type
   end
   
   def test_download_missing_file

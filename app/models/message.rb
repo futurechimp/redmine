@@ -30,7 +30,7 @@ class Message < ActiveRecord::Base
                 :description => :content,
                 :type => Proc.new {|o| o.parent_id.nil? ? 'message' : 'reply'},
                 :url => Proc.new {|o| {:controller => 'messages', :action => 'show', :board_id => o.board_id}.merge(o.parent_id.nil? ? {:id => o.id} : 
-                                                                                                                                       {:id => o.parent_id, :anchor => "message-#{o.id}"})}
+                                                                                                                                       {:id => o.parent_id, :r => o.id, :anchor => "message-#{o.id}"})}
 
   acts_as_activity_provider :find_options => {:include => [{:board => :project}, :author]},
                             :author_key => :author_id
@@ -41,6 +41,10 @@ class Message < ActiveRecord::Base
   validates_length_of :subject, :maximum => 255
   
   after_create :add_author_as_watcher
+  
+  def visible?(user=User.current)
+    !user.nil? && user.allowed_to?(:view_messages, project)
+  end
   
   def validate_on_create
     # Can not reply to a locked topic

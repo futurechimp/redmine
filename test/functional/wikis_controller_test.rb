@@ -21,7 +21,7 @@ require 'wikis_controller'
 # Re-raise errors caught by the controller.
 class WikisController; def rescue_action(e) raise e end; end
 
-class WikisControllerTest < Test::Unit::TestCase
+class WikisControllerTest < ActionController::TestCase
   fixtures :projects, :users, :roles, :members, :member_roles, :enabled_modules, :wikis
   
   def setup
@@ -29,14 +29,6 @@ class WikisControllerTest < Test::Unit::TestCase
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     User.current = nil
-  end
-  
-  def test_edit_routing
-    assert_routing(
-    #TODO: use PUT
-      {:method => :post, :path => 'projects/ladida/wiki'},
-      :controller => 'wikis', :action => 'edit', :id => 'ladida'
-    )
   end
   
   def test_create
@@ -47,17 +39,6 @@ class WikisControllerTest < Test::Unit::TestCase
     wiki = Project.find(3).wiki
     assert_not_nil wiki
     assert_equal 'Start page', wiki.start_page
-  end
-  
-  def test_destroy_routing
-    assert_routing(
-      {:method => :get, :path => 'projects/ladida/wiki/destroy'},
-      :controller => 'wikis', :action => 'destroy', :id => 'ladida'
-    )
-    assert_recognizes(  #TODO: use DELETE and update form
-      {:controller => 'wikis', :action => 'destroy', :id => 'ladida'},
-      {:method => :post, :path => 'projects/ladida/wiki/destroy'}
-    )
   end
   
   def test_destroy

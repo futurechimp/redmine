@@ -30,8 +30,8 @@ class Repository::Subversion < Repository
     'Subversion'
   end
 
-  def changesets_for_path(path, options={})
-    revisions = scm.revisions(path, nil, nil, :limit => options[:limit])
+  def latest_changesets(path, rev, limit=10)
+    revisions = scm.revisions(path, rev, nil, :limit => limit)
     revisions ? changesets.find_all_by_revision(revisions.collect(&:identifier), :order => "committed_on DESC", :include => :user) : []
   end
   
@@ -63,11 +63,7 @@ class Repository::Subversion < Repository
                                            :comments => revision.message)
               
               revision.paths.each do |change|
-                Change.create(:changeset => changeset,
-                              :action => change[:action],
-                              :path => change[:path],
-                              :from_path => change[:from_path],
-                              :from_revision => change[:from_revision])
+                changeset.create_change(change)
               end unless changeset.new_record?
             end
           end unless revisions.nil?
@@ -84,6 +80,6 @@ class Repository::Subversion < Repository
   #     url      = file:///var/svn/foo/bar
   #     => returns /bar
   def relative_url
-    @relative_url ||= url.gsub(Regexp.new("^#{Regexp.escape(root_url)}"), '')
+    @relative_url ||= url.gsub(Regexp.new("^#{Regexp.escape(root_url || scm.root_url)}", Regexp::IGNORECASE), '')
   end
 end

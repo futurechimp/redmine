@@ -1,5 +1,7 @@
-# redMine - project management software
-# Copyright (C) 2006-2007  Jean-Philippe Lang
+# encoding: utf-8
+#
+# Redmine - project management software
+# Copyright (C) 2006-2010  Jean-Philippe Lang
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +19,7 @@
 
 require File.dirname(__FILE__) + '/../test_helper'
 
-class ChangesetTest < Test::Unit::TestCase
+class ChangesetTest < ActiveSupport::TestCase
   fixtures :projects, :repositories, :issues, :issue_statuses, :changesets, :changes, :issue_categories, :enumerations, :custom_fields, :custom_values, :users, :members, :member_roles, :trackers
 
   def setup
@@ -53,6 +55,51 @@ class ChangesetTest < Test::Unit::TestCase
     assert_equal [1], c.issue_ids.sort
   end
 
+  def test_ref_keywords_allow_brackets_around_a_issue_number
+    Setting.commit_ref_keywords = '*'
+
+    c = Changeset.new(:repository => Project.find(1).repository,
+                      :committed_on => Time.now,
+                      :comments => '[#1] Worked on this issue')
+    c.scan_comment_for_issue_ids
+
+    assert_equal [1], c.issue_ids.sort
+  end
+
+  def test_ref_keywords_allow_brackets_around_multiple_issue_numbers
+    Setting.commit_ref_keywords = '*'
+
+    c = Changeset.new(:repository => Project.find(1).repository,
+                      :committed_on => Time.now,
+                      :comments => '[#1 #2, #3] Worked on these')
+    c.scan_comment_for_issue_ids
+
+    assert_equal [1,2,3], c.issue_ids.sort
+  end
+  
+  def test_commit_referencing_a_subproject_issue
+    c = Changeset.new(:repository => Project.find(1).repository,
+                      :committed_on => Time.now,
+                      :comments => 'refs #5, a subproject issue')
+    c.scan_comment_for_issue_ids
+    
+    assert_equal [5], c.issue_ids.sort
+    assert c.issues.first.project != c.project
+  end
+
+  def test_commit_referencing_a_parent_project_issue
+    # repository of child project
+    r = Repository::Subversion.create!(:project => Project.find(3), :url => 'svn://localhost/test')
+      
+    c = Changeset.new(:repository => r,
+                      :committed_on => Time.now,
+                      :comments => 'refs #2, an issue of a parent project')
+    c.scan_comment_for_issue_ids
+    
+    assert_equal [2], c.issue_ids.sort
+    assert c.issues.first.project != c.project
+  end
+
   def test_previous
     changeset = Changeset.find_by_revision('3')
     assert_equal Changeset.find_by_revision('2'), changeset.previous
@@ -69,7 +116,21 @@ class ChangesetTest < Test::Unit::TestCase
   end
 
   def test_next_nil
-    changeset = Changeset.find_by_revision('4')
+    changeset = Changeset.find_by_revision('10')
     assert_nil changeset.next
+  end
+  
+  def test_comments_should_be_converted_to_utf8
+    with_settings :commit_logs_encoding => 'ISO-8859-1' do
+      c = Changeset.new
+      c.comments = File.read("#{RAILS_ROOT}/test/fixtures/encoding/iso-8859-1.txt")
+      assert_equal "Texte encodé en ISO-8859-1.", c.comments
+    end
+  end
+  
+  def test_invalid_utf8_sequences_in_comments_should_be_stripped
+    c = Changeset.new
+    c.comments = File.read("#{RAILS_ROOT}/test/fixtures/encoding/iso-8859-1.txt")
+    assert_equal "Texte encod en ISO-8859-1.", c.comments
   end
 end

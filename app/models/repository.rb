@@ -62,6 +62,18 @@ class Repository < ActiveRecord::Base
   def entries(path=nil, identifier=nil)
     scm.entries(path, identifier)
   end
+
+  def branches
+    scm.branches
+  end
+
+  def tags
+    scm.tags
+  end
+
+  def default_branch
+    scm.default_branch
+  end
   
   def properties(path, identifier=nil)
     scm.properties(path, identifier)
@@ -75,28 +87,39 @@ class Repository < ActiveRecord::Base
     scm.diff(path, rev, rev_to)
   end
   
-  # Default behaviour: we search in cached changesets
-  def changesets_for_path(path, options={})
-    path = "/#{path}" unless path.starts_with?('/')
-    Change.find(:all, :include => {:changeset => :user}, 
-                      :conditions => ["repository_id = ? AND path = ?", id, path],
-                      :order => "committed_on DESC, #{Changeset.table_name}.id DESC",
-                      :limit => options[:limit]).collect(&:changeset)
-  end
-  
   # Returns a path relative to the url of the repository
   def relative_path(path)
     path
   end
   
+  # Finds and returns a revision with a number or the beginning of a hash
+  def find_changeset_by_name(name)
+    changesets.find(:first, :conditions => (name.match(/^\d*$/) ? ["revision = ?", name.to_s] : ["revision LIKE ?", name + '%']))
+  end
+  
   def latest_changeset
     @latest_changeset ||= changesets.find(:first)
+  end
+
+  # Returns the latest changesets for +path+
+  # Default behaviour is to search in cached changesets
+  def latest_changesets(path, rev, limit=10)
+    if path.blank?
+      changesets.find(:all, :include => :user,
+                            :order => "#{Changeset.table_name}.committed_on DESC, #{Changeset.table_name}.id DESC",
+                            :limit => limit)
+    else
+      changes.find(:all, :include => {:changeset => :user}, 
+                         :conditions => ["path = ?", path.with_leading_slash],
+                         :order => "#{Changeset.table_name}.committed_on DESC, #{Changeset.table_name}.id DESC",
+                         :limit => limit).collect(&:changeset)
+    end
   end
     
   def scan_changesets_for_issue_ids
     self.changesets.each(&:scan_comment_for_issue_ids)
   end
-  
+
   # Returns an array of committers usernames and associated user_id
   def committers
     @committers ||= Changeset.connection.select_rows("SELECT DISTINCT committer, user_id FROM #{Changeset.table_name} WHERE repository_id = #{id}")
@@ -113,6 +136,7 @@ class Repository < ActiveRecord::Base
         end
       end
       @committers = nil
+      @found_committer_users = nil
       true
     else
       false
@@ -123,24 +147,34 @@ class Repository < ActiveRecord::Base
   # It will return nil if the committer is not yet mapped and if no User
   # with the same username or email was found
   def find_committer_user(committer)
-    if committer
+    unless committer.blank?
+      @found_committer_users ||= {}
+      return @found_committer_users[committer] if @found_committer_users.has_key?(committer)
+      
+      user = nil
       c = changesets.find(:first, :conditions => {:committer => committer}, :include => :user)
       if c && c.user
-        c.user
+        user = c.user
       elsif committer.strip =~ /^([^<]+)(<(.*)>)?$/
         username, email = $1.strip, $3
         u = User.find_by_login(username)
         u ||= User.find_by_mail(email) unless email.blank?
-        u
+        user = u
       end
+      @found_committer_users[committer] = user
+      user
     end
   end
   
-  # fetch new changesets for all repositories
-  # can be called periodically by an external script
+  # Fetches new changesets for all repositories of active projects
+  # Can be called periodically by an external script
   # eg. ruby script/runner "Repository.fetch_changesets"
   def self.fetch_changesets
-    find(:all).each(&:fetch_changesets)
+    Project.active.has_module(:repository).find(:all, :include => :repository).each do |project|
+      if project.repository
+        project.repository.fetch_changesets
+      end
+    end
   end
   
   # scan changeset comments to find related and fixed issues for all repositories

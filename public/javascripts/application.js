@@ -33,6 +33,12 @@ function toggleRowGroup(el) {
 	}
 }
 
+function toggleFieldset(el) {
+	var fieldset = Element.up(el, 'fieldset');
+	fieldset.toggleClassName('collapsed');
+	Effect.toggle(fieldset.down('div'), 'slide', {duration:0.2});
+}
+
 var fileFieldCount = 1;
 
 function addFileField() {
@@ -46,11 +52,17 @@ function addFileField() {
     d.type = "text";
     d.name = "attachments[" + fileFieldCount + "][description]";
     d.size = 60;
+    var dLabel = new Element('label');
+    dLabel.addClassName('inline');
+    // Pulls the languge value used for Optional Description
+    dLabel.update($('attachment_description_label_content').innerHTML)
     
     p = document.getElementById("attachments_fields");
     p.appendChild(document.createElement("br"));
     p.appendChild(f);
-    p.appendChild(d);
+    p.appendChild(dLabel);
+    dLabel.appendChild(d);
+
 }
 
 function showTab(name) {
@@ -67,9 +79,58 @@ function showTab(name) {
 	return false;
 }
 
+function moveTabRight(el) {
+	var lis = Element.up(el, 'div.tabs').down('ul').childElements();
+	var tabsWidth = 0;
+	var i;
+	for (i=0; i<lis.length; i++) {
+		if (lis[i].visible()) {
+			tabsWidth += lis[i].getWidth() + 6;
+		}
+	}
+	if (tabsWidth < Element.up(el, 'div.tabs').getWidth() - 60) {
+		return;
+	}
+	i=0;
+	while (i<lis.length && !lis[i].visible()) {
+		i++;
+	}
+	lis[i].hide();
+}
+
+function moveTabLeft(el) {
+	var lis = Element.up(el, 'div.tabs').down('ul').childElements();
+	var i = 0;
+	while (i<lis.length && !lis[i].visible()) {
+		i++;
+	}
+	if (i>0) {
+		lis[i-1].show();
+	}
+}
+
+function displayTabsButtons() {
+	var lis;
+	var tabsWidth = 0;
+	var i;
+	$$('div.tabs').each(function(el) {
+		lis = el.down('ul').childElements();
+		for (i=0; i<lis.length; i++) {
+			if (lis[i].visible()) {
+				tabsWidth += lis[i].getWidth() + 6;
+			}
+		}
+		if ((tabsWidth < el.getWidth() - 60) && (lis[0].visible())) {
+			el.down('div.tabs-buttons').hide();
+		} else {
+			el.down('div.tabs-buttons').show();
+		}
+	});
+}
+
 function setPredecessorFieldsVisibility() {
     relationType = $('relation_relation_type');
-    if (relationType && relationType.value == "precedes") {
+    if (relationType && (relationType.value == "precedes" || relationType.value == "follows")) {
         Element.show('predecessor_fields');
     } else {
         Element.hide('predecessor_fields');
@@ -139,6 +200,18 @@ function randomKey(size) {
 	return key;
 }
 
+function observeParentIssueField(url) {
+  new Ajax.Autocompleter('issue_parent_issue_id',
+                         'parent_issue_candidates',
+                         url,
+                         { minChars: 3,
+                           frequency: 0.5,
+                           paramName: 'q',
+                           updateElement: function(value) {
+                             document.getElementById('issue_parent_issue_id').value = value.id;
+                           }});
+}
+
 /* shows and hides ajax indicator */
 Ajax.Responders.register({
     onCreate: function(){
@@ -152,3 +225,11 @@ Ajax.Responders.register({
         }
     }
 });
+
+function hideOnLoad() {
+  $$('.hol').each(function(el) {
+  	el.hide();
+	});
+}
+
+Event.observe(window, 'load', hideOnLoad);

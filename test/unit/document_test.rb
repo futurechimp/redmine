@@ -17,8 +17,8 @@
 
 require File.dirname(__FILE__) + '/../test_helper'
 
-class DocumentTest < Test::Unit::TestCase
-  fixtures :projects, :enumerations, :documents
+class DocumentTest < ActiveSupport::TestCase
+  fixtures :projects, :enumerations, :documents, :attachments
 
   def test_create
     doc = Document.new(:project => Project.find(1), :title => 'New document', :category => Enumeration.find_by_name('User documentation'))
@@ -42,5 +42,17 @@ class DocumentTest < Test::Unit::TestCase
     doc = Document.new(:project => Project.find(1), :title => 'New document')
     assert_equal e, doc.category
     assert doc.save
+  end
+  
+  def test_updated_on_with_attachments
+    d = Document.find(1)
+    assert d.attachments.any?
+    assert_equal d.attachments.map(&:created_on).max, d.updated_on
+  end
+  
+  def test_updated_on_without_attachments
+    d = Document.find(2)
+    assert d.attachments.empty?
+    assert_equal d.created_on, d.updated_on
   end
 end

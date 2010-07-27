@@ -28,7 +28,7 @@ class WikiPage < ActiveRecord::Base
   acts_as_event :title => Proc.new {|o| "#{l(:label_wiki)}: #{o.title}"},
                 :description => :text,
                 :datetime => :created_on,
-                :url => Proc.new {|o| {:controller => 'wiki', :id => o.wiki.project_id, :page => o.title}}
+                :url => Proc.new {|o| {:controller => 'wiki', :id => o.wiki.project, :page => o.title}}
 
   acts_as_searchable :columns => ['title', 'text'],
                      :include => [{:wiki => :project}, :content],
@@ -40,6 +40,19 @@ class WikiPage < ActiveRecord::Base
   validates_format_of :title, :with => /^[^,\.\/\?\;\|\s]*$/
   validates_uniqueness_of :title, :scope => :wiki_id, :case_sensitive => false
   validates_associated :content
+  
+  # Wiki pages that are protected by default
+  DEFAULT_PROTECTED_PAGES = %w(sidebar)
+  
+  def after_initialize
+    if new_record? && DEFAULT_PROTECTED_PAGES.include?(title.to_s.downcase)
+      self.protected = true
+    end
+  end
+  
+  def visible?(user=User.current)
+    !user.nil? && user.allowed_to?(:view_wiki_pages, project)
+  end
 
   def title=(value)
     value = Wiki.titleize(value)

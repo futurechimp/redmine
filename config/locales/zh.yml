@@ -56,6 +56,9 @@ zh:
       over_x_years:
         one: "一年以上"
         other: "{{count}} 年以上"
+      almost_x_years:
+        one:   "将近 1 年"
+        other: "将近 {{count}} 年"
     prompts:
       year:   "年"
       month:  "月"
@@ -86,7 +89,16 @@ zh:
       format:
         delimiter: ""
         precision: 1
-      storage_units: [Bytes, KB, MB, GB, TB]
+      storage_units:
+        format: "%n %u"
+        units:
+          byte:
+            one: "Byte"
+            other: "Bytes"
+          kb: "KB"
+          mb: "MB"
+          gb: "GB"
+          tb: "TB"
   
   support:
     array:
@@ -157,18 +169,27 @@ zh:
   notice_email_sent: "邮件已成功发送到 {{value}}"
   notice_email_error: "发送邮件时发生错误 ({{value}})"
   notice_feeds_access_key_reseted: 您的RSS存取键已被重置。
+  notice_api_access_key_reseted: 您的API访问键已被重置。
   notice_failed_to_save_issues: "{{count}} 个问题保存失败（共选择 {{total}} 个问题）：{{ids}}."
   notice_no_issue_selected: "未选择任何问题！请选择您要编辑的问题。"
   notice_account_pending: "您的帐号已被成功创建，正在等待管理员的审核。"
   notice_default_data_loaded: 成功载入默认设置。
   notice_unable_delete_version: 无法删除版本
-  
+  notice_issue_done_ratios_updated: 问题完成度已更新。
+
   error_can_t_load_default_data: "无法载入默认设置：{{value}}"
   error_scm_not_found: "版本库中不存在该条目和（或）其修订版本。"
   error_scm_command_failed: "访问版本库时发生错误：{{value}}"
   error_scm_annotate: "该条目不存在或无法追溯。"
   error_issue_not_found_in_project: '问题不存在或不属于此项目'
-  
+  error_no_tracker_in_project: 该项目未设定跟踪标签，请检查项目配置。
+  error_no_default_issue_status: 未设置默认的问题状态。请检查系统设置（"管理" -> "问题状态"）。
+  error_can_not_reopen_issue_on_closed_version: 该问题被关联到一个已经关闭的版本，因此无法重新打开。
+  error_can_not_archive_project: 该项目无法被存档
+  error_issue_done_ratios_not_updated: 问题完成度未能被更新。
+  error_workflow_copy_source: 请选择一个源跟踪标签或者角色
+  error_workflow_copy_target: 请选择目标跟踪标签和角色
+
   warning_attachments_not_saved: "{{count}} 个文件保存失败。"
   
   mail_subject_lost_password: "您的 {{value}} 密码"
@@ -228,7 +249,6 @@ zh:
   field_homepage: 主页
   field_is_public: 公开
   field_parent: 上级项目
-  field_is_in_chlog: 在更新日志中显示问题
   field_is_in_roadmap: 在路线图中显示问题
   field_login: 登录名
   field_mail_notification: 邮件通知
@@ -263,7 +283,7 @@ zh:
   field_spent_on: 日期
   field_identifier: 标识
   field_is_filter: 作为过滤条件
-  field_issue_to_id: 相关问题
+  field_issue_to: 相关问题
   field_delay: 延期
   field_assignable: 问题可指派给此角色
   field_redirect_existing_links: 重定向到现有链接
@@ -279,6 +299,7 @@ zh:
   field_identity_url: OpenID URL
   field_content: 内容
   field_group_by: 根据此条件分组
+  field_sharing: 共享
 
   setting_app_title: 应用程序标题
   setting_app_subtitle: 应用程序子标题
@@ -314,23 +335,33 @@ zh:
   setting_activity_days_default: 在项目活动中显示的天数
   setting_display_subprojects_issues: 在项目页面上默认显示子项目的问题
   setting_enabled_scm: 启用 SCM
+  setting_mail_handler_body_delimiters: 在这些行之后截断邮件
   setting_mail_handler_api_enabled: 启用用于接收邮件的服务
   setting_mail_handler_api_key: API key
   setting_sequential_project_identifiers: 顺序产生项目标识
   setting_gravatar_enabled: 使用Gravatar用户头像
+  setting_gravatar_default: 默认的Gravatar头像
   setting_diff_max_lines_displayed: 查看差别页面上显示的最大行数
   setting_file_max_size_displayed: 允许直接显示的最大文本文件
   setting_repository_log_display_limit: 在文件变更记录页面上显示的最大修订版本数量
   setting_openid: 允许使用OpenID登录和注册
   setting_password_min_length: 最短密码长度
   setting_new_project_user_role_id: 非管理员用户新建项目时将被赋予的（在该项目中的）角色
+  setting_default_projects_modules: 新建项目默认启用的模块
+  setting_issue_done_ratio: 计算问题完成度：
+  setting_issue_done_ratio_issue_field: 使用问题（的完成度）属性
+  setting_issue_done_ratio_issue_status: 使用问题状态
+  setting_start_of_week: 日历开始于
+  setting_rest_api_enabled: 启用REST web service
 
   permission_add_project: 新建项目
+  permission_add_subprojects: 新建子项目
   permission_edit_project: 编辑项目
   permission_select_project_modules: 选择项目模块
   permission_manage_members: 管理成员
   permission_manage_versions: 管理版本
   permission_manage_categories: 管理问题类别
+  permission_view_issues: 查看问题
   permission_add_issues: 新建问题
   permission_edit_issues: 更新问题
   permission_manage_issue_relations: 管理问题关联
@@ -345,6 +376,7 @@ zh:
   permission_view_calendar: 查看日历
   permission_view_issue_watchers: 查看跟踪者列表
   permission_add_issue_watchers: 添加跟踪者
+  permission_delete_issue_watchers: 删除跟踪者
   permission_log_time: 登记工时
   permission_view_time_entries: 查看耗时
   permission_edit_time_entries: 编辑耗时
@@ -387,6 +419,7 @@ zh:
   label_user: 用户
   label_user_plural: 用户
   label_user_new: 新建用户
+  label_user_anonymous: 匿名用户
   label_project: 项目
   label_project_new: 新建项目
   label_project_plural: 项目
@@ -395,7 +428,7 @@ zh:
     one:   1 个项目
     other: "{{count}} 个项目"
   label_project_all: 所有的项目
-  label_project_latest: 最近更新的项目
+  label_project_latest: 最近的项目
   label_issue: 问题
   label_issue_new: 新建问题
   label_issue_plural: 问题
@@ -458,6 +491,7 @@ zh:
   label_auth_source_new: 新建认证模式
   label_auth_source_plural: 认证模式
   label_subproject_plural: 子项目
+  label_subproject_new: 新建子项目
   label_and_its_subprojects: "{{value}} 及其子项目"
   label_min_max_length: 最小 - 最大 长度
   label_list: 列表
@@ -487,12 +521,12 @@ zh:
   label_news_latest: 最近的新闻
   label_news_view_all: 查看所有新闻
   label_news_added: 新闻已添加
-  label_change_log: 更新日志
   label_settings: 配置
   label_overview: 概述
   label_version: 版本
   label_version_new: 新建版本
   label_version_plural: 版本
+  label_close_versions: 关闭已完成的版本
   label_confirmation: 确认
   label_export_to: 导出
   label_read: 读取...
@@ -558,10 +592,10 @@ zh:
   label_all_time: 全部时间
   label_yesterday: 昨天
   label_this_week: 本周
-  label_last_week: 下周
+  label_last_week: 上周
   label_last_n_days: "最后 {{count}} 天"
   label_this_month: 本月
-  label_last_month: 下月
+  label_last_month: 上月
   label_this_year: 今年
   label_date_range: 日期范围
   label_less_than_ago: 之前天数少于
@@ -575,8 +609,11 @@ zh:
   label_browse: 浏览
   label_modification: "{{count}} 个更新"
   label_modification_plural: "{{count}} 个更新"
+  label_branch: 分支
+  label_tag: 标签
   label_revision: 修订
   label_revision_plural: 修订
+  label_revision_id: 修订 {{value}}
   label_associated_revisions: 相关修订版本
   label_added: 已添加
   label_modified: 已修改
@@ -586,6 +623,7 @@ zh:
   label_latest_revision: 最近的修订版本
   label_latest_revision_plural: 最近的修订版本
   label_view_revisions: 查看修订
+  label_view_all_revisions: 查看所有修订
   label_max_size: 最大尺寸
   label_sort_highest: 置顶
   label_sort_higher: 上移
@@ -622,7 +660,7 @@ zh:
   label_diff_inline: 直列
   label_diff_side_by_side: 并排
   label_options: 选项
-  label_copy_workflow_from: 从以下项目复制工作流程
+  label_copy_workflow_from: 从以下选项复制工作流程
   label_permissions_report: 权限报表
   label_watched_issues: 跟踪的问题
   label_related_issues: 相关的问题
@@ -663,7 +701,9 @@ zh:
   label_language_based: 根据用户的语言
   label_sort_by: "根据 {{value}} 排序"
   label_send_test_email: 发送测试邮件
-  label_feeds_access_key_created_on: "RSS 存取键是在 {{value}} 之前建立的"
+  label_feeds_access_key: RSS存取键
+  label_missing_feeds_access_key: 缺少RSS存取键
+  label_feeds_access_key_created_on: "RSS存取键是在 {{value}} 之前建立的"
   label_module_plural: 模块
   label_added_time_by: "由 {{author}} 在 {{age}} 之前添加"
   label_updated_time: " 更新于 {{value}} 之前"
@@ -710,7 +750,24 @@ zh:
   label_date_from_to: 从 {{start}} 到 {{end}}
   label_wiki_content_added: Wiki 页面已添加
   label_wiki_content_updated: Wiki 页面已更新
-
+  label_group: 组
+  label_group_plural: 组
+  label_group_new: 新建组
+  label_time_entry_plural: 耗时
+  label_version_sharing_none: 不共享
+  label_version_sharing_descendants: 与子项目共享
+  label_version_sharing_hierarchy: 与项目继承层次共享
+  label_version_sharing_tree: 与项目树共享
+  label_version_sharing_system: 与所有项目共享
+  label_update_issue_done_ratios: 更新问题的完成度
+  label_copy_source: 源
+  label_copy_target: 目标
+  label_copy_same_as_target: 与目标一致
+  label_display_used_statuses_only: 只显示被此跟踪标签使用的状态
+  label_api_access_key: API访问键
+  label_missing_api_access_key: 缺少API访问键
+  label_api_access_key_created_on: API访问键是在 {{value}} 之前建立的
+  
   button_login: 登录
   button_submit: 提交
   button_save: 保存
@@ -731,6 +788,7 @@ zh:
   button_list: 列表
   button_view: 查看
   button_move: 移动
+  button_move_and_follow: 移动并转到新问题
   button_back: 返回
   button_cancel: 取消
   button_activate: 激活
@@ -746,15 +804,24 @@ zh:
   button_rename: 重命名
   button_change_password: 修改密码
   button_copy: 复制
+  button_copy_and_follow: 复制并转到新问题
   button_annotate: 追溯
   button_update: 更新
   button_configure: 配置
   button_quote: 引用
-  
+  button_duplicate: 副本
+  button_show: 显示
+
   status_active: 活动的
   status_registered: 已注册
   status_locked: 已锁定
-  
+
+  version_status_open: 打开
+  version_status_locked: 锁定
+  version_status_closed: 关闭
+
+  field_active: 活动
+
   text_select_mail_notifications: 选择需要发送邮件通知的动作
   text_regexp_info: 例如：^[A-Z0-9]+$
   text_min_max_length_info: 0 表示没有限制
@@ -762,9 +829,10 @@ zh:
   text_subprojects_destroy_warning: "以下子项目也将被同时删除：{{value}}"
   text_workflow_edit: 选择角色和跟踪标签来编辑工作流程
   text_are_you_sure: 您确定？
-  text_journal_changed: "从 {{old}} 变更为 {{new}}"
-  text_journal_set_to: "设置为 {{value}}"
-  text_journal_deleted: 已删除
+  text_journal_changed: "{{label}} 从 {{old}} 变更为 {{new}}"
+  text_journal_set_to: "{{label}} 被设置为 {{value}}"
+  text_journal_deleted: "{{label}} 已删除 ({{old}})"
+  text_journal_added: "{{label}} {{value}} 已添加"
   text_tip_task_begin_day: 今天开始的任务
   text_tip_task_end_day: 今天结束的任务
   text_tip_task_begin_end_day: 今天开始并结束的任务
@@ -775,6 +843,7 @@ zh:
   text_tracker_no_workflow: 此跟踪标签未定义工作流程
   text_unallowed_characters: 非法字符
   text_comma_separated: 可以使用多个值（用逗号,分开）。
+  text_line_separated: 可以使用多个值（每行一个值）。
   text_issues_ref_in_commit_messages: 在提交信息中引用和解决问题
   text_issue_added: "问题 {{id}} 已由 {{author}} 提交。"
   text_issue_updated: "问题 {{id}} 已由 {{author}} 更新。"
@@ -807,15 +876,16 @@ zh:
   text_wiki_page_reassign_children: 将子页面的上级页面设置为
   text_wiki_page_nullify_children: 将子页面保留为根页面
   text_wiki_page_destroy_children: 删除子页面及其所有下级页面
+  text_own_membership_delete_confirmation: 你正在删除你现有的某些或全部权限，如果这样做了你可能将会再也无法编辑该项目了。你确定要继续吗？
 
   default_role_manager: 管理人员
-  default_role_developper: 开发人员
+  default_role_developer: 开发人员
   default_role_reporter: 报告人员
   default_tracker_bug: 错误
   default_tracker_feature: 功能
   default_tracker_support: 支持
   default_issue_status_new: 新建
-  default_issue_status_assigned: 已指派
+  default_issue_status_in_progress: 进行中
   default_issue_status_resolved: 已解决
   default_issue_status_feedback: 反馈
   default_issue_status_closed: 已关闭
@@ -833,3 +903,26 @@ zh:
   enumeration_issue_priorities: 问题优先级
   enumeration_doc_categories: 文档类别
   enumeration_activities: 活动（时间跟踪）
+  enumeration_system_activity: 系统活动
+  label_board_sticky: 置顶
+  label_board_locked: 锁定
+  permission_export_wiki_pages: 导出 wiki 页面
+  setting_cache_formatted_text: 缓存已格式化文字
+  permission_manage_project_activities: 管理项目活动
+  error_unable_delete_issue_status: 无法删除问题状态
+  label_profile: 配置概况
+  permission_manage_subtasks: Manage subtasks
+  field_parent_issue: Parent task
+  label_subtask_plural: Subtasks
+  label_project_copy_notifications: Send email notifications during the project copy
+  error_can_not_delete_custom_field: 不能删除自定义属性
+  error_unable_to_connect: 不能连接到 ({{value}})
+  error_can_not_remove_role: 该角色正在使用中, 不能删除.
+  error_can_not_delete_tracker: 该跟踪标签包含问题, 不能删除.
+  field_principal: Principal
+  label_my_page_block: My page block
+  notice_failed_to_save_members: "Failed to save member(s): {{errors}}."
+  text_zoom_out: Zoom out
+  text_zoom_in: Zoom in
+  notice_unable_delete_time_entry: Unable to delete time log entry.
+  label_overall_spent_time: Overall spent time

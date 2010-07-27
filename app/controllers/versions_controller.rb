@@ -17,24 +17,79 @@
 
 class VersionsController < ApplicationController
   menu_item :roadmap
-  before_filter :find_project, :authorize
+  model_object Version
+  before_filter :find_model_object, :except => [:new, :close_completed]
+  before_filter :find_project_from_association, :except => [:new, :close_completed]
+  before_filter :find_project, :only => [:new, :close_completed]
+  before_filter :authorize
 
+  helper :custom_fields
+  helper :projects
+  
   def show
+    @issues = @version.fixed_issues.visible.find(:all,
+      :include => [:status, :tracker, :priority],
+      :order => "#{Tracker.table_name}.position, #{Issue.table_name}.id")
+  end
+  
+  def new
+    @version = @project.versions.build
+    if params[:version]
+      attributes = params[:version].dup
+      attributes.delete('sharing') unless attributes.nil? || @version.allowed_sharings.include?(attributes['sharing'])
+      @version.attributes = attributes
+    end
+    if request.post?
+      if @version.save
+        respond_to do |format|
+          format.html do
+            flash[:notice] = l(:notice_successful_create)
+            redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
+          end
+          format.js do
+            # IE doesn't support the replace_html rjs method for select box options
+            render(:update) {|page| page.replace "issue_fixed_version_id",
+              content_tag('select', '<option></option>' + version_options_for_select(@project.shared_versions.open, @version), :id => 'issue_fixed_version_id', :name => 'issue[fixed_version_id]')
+            }
+          end
+        end
+      else
+        respond_to do |format|
+          format.html
+          format.js do
+            render(:update) {|page| page.alert(@version.errors.full_messages.join('\n')) }
+          end
+        end
+      end
+    end
   end
   
   def edit
-    if request.post? and @version.update_attributes(params[:version])
-      flash[:notice] = l(:notice_successful_update)
-      redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
+    if request.post? && params[:version]
+      attributes = params[:version].dup
+      attributes.delete('sharing') unless @version.allowed_sharings.include?(attributes['sharing'])
+      if @version.update_attributes(attributes)
+        flash[:notice] = l(:notice_successful_update)
+        redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
+      end
     end
+  end
+  
+  def close_completed
+    if request.post?
+      @project.close_completed_versions
+    end
+    redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
   end
 
   def destroy
-    @version.destroy
-    redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
-  rescue
-    flash[:error] = l(:notice_unable_delete_version)
-    redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
+    if @version.fixed_issues.empty?
+      @version.destroy
+      redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
+    else
+      flash[:error] = l(:notice_unable_delete_version)
+      redirect_to :controller => 'projects', :action => 'settings', :tab => 'versions', :id => @project
+    end
   end
   
   def status_by
@@ -46,9 +101,8 @@ class VersionsController < ApplicationController
 
 private
   def find_project
-    @version = Version.find(params[:id])
-    @project = @version.project
+    @project = Project.find(params[:project_id])
   rescue ActiveRecord::RecordNotFound
     render_404
-  end  
+  end
 end

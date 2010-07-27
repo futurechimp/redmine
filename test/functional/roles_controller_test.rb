@@ -21,7 +21,7 @@ require 'roles_controller'
 # Re-raise errors caught by the controller.
 class RolesController; def rescue_action(e) raise e end; end
 
-class RolesControllerTest < Test::Unit::TestCase
+class RolesControllerTest < ActionController::TestCase
   fixtures :roles, :users, :members, :member_roles, :workflows
   
   def setup
@@ -35,7 +35,7 @@ class RolesControllerTest < Test::Unit::TestCase
   def test_get_index
     get :index
     assert_response :success
-    assert_template 'list'
+    assert_template 'index'
 
     assert_not_nil assigns(:roles)
     assert_equal Role.find(:all, :order => 'builtin, position'), assigns(:roles)
